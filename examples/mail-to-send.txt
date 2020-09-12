@@ -1,0 +1,84 @@
+Dear data submitter,
+
+you receive the following information as your e-mail address is connected to submissions of geomagnetic data products from OBSCODE observatory.
+Your one-second data submission from 2016 has been automatically evaluated by IMBOT, an automatic data checker of INTERMAGNET.
+
+The evaluation process resulted in
+
+LEVEL 1
+
+Your data has provisionaly been accepted by INTERMAGNET. Congratulations!
+
+In order to continue the evaluation process some issues need to be clarified. Please read the attached report and instructions.
+
+If you have any questions regarding the evalutation process please check out the general instructions (github link) or contact the IMBOT manager.
+
+
+Sincerely,
+       IMBOT
+
+
+    -----------------------------------------------------------------------------------
+    Instructions to update file and or meta information for re-evaluation of your data:
+
+    1. Do NOT edit any file in the submitting directories as long as you are NOT ready to submit a revised set
+
+    2. Please check the report for issues and suggested improvements
+
+         The report is attached to this mail and can also be found within the level/OBSCODE directory of the GIN.
+         The report is a text file in markdown language. You can read it in any text editor
+         or you might choose a special markdown editor (e.g. https://dillinger.io/)  
+
+    2.1. The report is titeled "OBSCODE" - Level 1 failed
+
+         There are general problems with the file structure, data files,
+         readability of your files. Please check the submitted files and convert them either 
+         to IAGA-2002 and or IMAGCDF. Data which can be read by MagPy can usually also be 
+         analyzed. Please upload corrected files into the step_0 directory of the GIN.
+
+    2.2. The report is titeled "OBSCODE" - Level 1
+
+         Your data is provisionally accepted by INTERMAGNET. 
+         There are, however, minor issues. Mostly only some meta information, which is required for 
+         INTERMAGNET archiving is missing. Please follow the instructions in section 3 for 
+         obtaining level 2 clearance.
+
+    2.3. The report is titeled "OBSCODE" - Level 2
+
+         Your data set is accepted by INTERMAGNET and meets the criteria for final level 3 evaluation. 
+         Nevertheless, please check the report for suggested improvements and follow the steps 
+         outlined in section 3 if you want to consider them for the final data product (not obligatory). 
+         A reviewer will automatically be asigned, who will manually check your submission. You
+         will get a detailed report and contact information for the referee. Please note:
+         Data checkers volunteered ... They perform these checks beside their usual workload.
+         Usually, a final data check summary is obtained within three months after level 2 submission. 
+
+         Please note, that level 3 evaluation also contains a very restrictive data quality check.
+         Failing a level 3 evaluation has no consequence for your INTERMAGNET status. Please
+         analyse the issues: it might be useful to trigger ... for improving instrumentation, 
+         powering and eventually instruments location.  
+
+    3. If you are ready to perform updates to your level 1 submission:
+
+    3.1 Prepare you updates locally and upload them altogether.
+
+    3.2 Upload new files and filled out sheets into the
+        step_0 directory of the GIN.
+
+    3.3 For meta information updates (level 1 and level 2):
+        Please download "metainfo_update.txt" from the GIN
+        to be found in directory level/"OBSCODE" along with 
+        the report.
+        Please add the requested data into this file.
+        
+    3.4 For file contents updates (level 1):
+        Upload the new/corrected files and replace/delete old files.
+
+    3.5 Approximately three hours after you finished your uploads
+        an automatic evaluation will be triggered.
+
+    4. Problems
+
+        If you have problems or questions please contact the IMBOT manager.
+
+                               

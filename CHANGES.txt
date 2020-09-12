@@ -1,0 +1,28 @@
+# IMBOT - the INTERMAGNET software robot.
+# An automatic data checker for one second data.
+-------------------------------------------------
+####<0.9.1>, <2020-09-12> --
+
+0.9.1 general:
+    + first working version of the IMBOT data checker 
+    + includes a full data check as outlined in the correpsonding manual
+    + notfictations are send only to the IMBOT manager
+    + converted files are only stored at the IMBOT server 
+
+
+####<1.0.0>, <too be published at 2020-11-22> --
+
+1.0.0 general:
+    + version 1.0.0 is the first published version, introduced at the IM meeteing winter 2020
+    + Python3 compatible
+
+1.0.0 fixed:
+    -
+
+1.0.0 additions:
+    - activated email and telegram notifcations
+       -> at present, emails are only send to IMBOT manager (hard coded)
+    + provide data checker list 
+    + uncomment line 1534: #maildict['To'] = email
+    + eventually provide alternative mail list and check lines 1500ff
+

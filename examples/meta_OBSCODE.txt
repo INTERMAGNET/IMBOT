@@ -1,0 +1,27 @@
+## Parameter sheet for additional/missing metainformation
+## ------------------------------------------------------
+## Please provide key - value pairs as shown below.
+## The key need to correspond to the IMAGCDF key. Please
+## check out the IMAGCDF format description at INTERMAGNET
+## for details. Alternatively you can use MagPy header keys.
+## Values must not contain special characters or colons.
+## Enter "None" to indicate that a value is not available
+## Comments need to start in new lines and every comment line.
+## must start with a hash.
+## Please note - you can also provide optional keys here.
+## 
+## Example:
+## Providing Partial standard value descriptions as requested:
+# StandardLevel  :  partial
+# PartialStandDesc  :  IMOS11,IMOS14,IMOS41
+
+
+# Provide a valid standard level (full, partial), None is not accepted
+StandardLevel  :  partial
+
+# If Standard Level is partial, provide a list of standards met
+PartialStandDesc  :  IMOS-01,IMOS-02,IMOS-03,IMOS-04,IMOS-05,IMOS-11,IMOS-14,IMOS-41
+
+# If data is not available please confirm by MissingData  :  confirmed
+MissingData  :  confirmed
+
