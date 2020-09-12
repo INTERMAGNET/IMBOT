@@ -1039,15 +1039,16 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
         for key in parameterdict:
             # if not key a dictionary
             if not isinstance(parameterdict[key],dict):
-                text.append(">{}  :  {}\n".format(key,parameterdict[key]))
+                text.append("* {}  :  {}\n".format(key,parameterdict[key]))
 
         for key in generaldict:
             # if not key a dictionary
             if not isinstance(generaldict[key],dict):
                 if key.startswith('Noiselevel'):
-                    text.append(">{}  :  {:.0f} pT\n".format(key,float(generaldict[key])*1000.))
+                    text.append("* {}  :  {:.0f} pT\n".format(key,float(generaldict[key])*1000.))
                 else:
-                    text.append(">{}  :  {}\n".format(key,generaldict[key]))
+                    text.append("* {}  :  {}\n".format(key,generaldict[key]))
+        #TODO: add daylist
 
         text.append("\n\n### Details on monthly evaluation\n\n")
         for month in definitivedict:
