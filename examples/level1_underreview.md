@@ -65,17 +65,17 @@ DataSensorOrientation | HDZF
 
 ### Basic analysis information
 
-*amount  :  1
-*type  :  .zip
-*lastmodified  :  1594113906.112519
-*obscode  :  OBSCODE
-*Readability test file  :  /media/leon/Images/DataCheck/tmp/OBSCODE/raw/obs20160210dsec.sec
-*Readability  :  OK
-*Data format  :  IAGA-2002
-*Year  :  2016
-*MagPyVersion  :  0.9.7
-*Noiselevel  :  10 pT
-*NoiselevelStdDeviation  :  1 pT
+* amount  :  1
+* type  :  .zip
+* lastmodified  :  1594113906.112519
+* obscode  :  OBSCODE
+* Readability test file  :  /media/leon/Images/DataCheck/tmp/OBSCODE/raw/obs20160210dsec.sec
+* Readability  :  OK
+* Data format  :  IAGA-2002
+* Year  :  2016
+* MagPyVersion  :  0.9.7
+* Noiselevel  :  10 pT
+* NoiselevelStdDeviation  :  1 pT
 
 
 ### Details on monthly evaluation
