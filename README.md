@@ -276,6 +276,6 @@ to get this data sets published on INTERMAGNET within hours. All methods are wel
    [IAGA]: <http://www.iaga-aiga.org/>
    [IAGA-2002]: <https://www.ngdc.noaa.gov/IAGA/vdat/IAGA2002/iaga2002format.html>
    [IAF]: <https://www.intermagnet.org/data-donnee/formats/iaf-eng.php>
-   [IMBOT report]: <add an example report in gitub>
+   [IMBOT report]: <https://github.com/geomagpy/IMBOT/blob/master/examples/level1_underreview.md>
 
 
