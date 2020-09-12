@@ -102,7 +102,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.084 with a std of 0.199
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | differences in peak amplitudes between definitive one-minute and one-second data products observed
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 2 | Value 
 ------ | ----- 
@@ -125,7 +125,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.150 with a std of 0.174
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | good agreement between definitive one-minute and one-second data products
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 3 | Value 
 ------ | ----- 
@@ -148,7 +148,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.104 with a std of 0.222
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | Large amplitude differences between definitive one-minute and one-second data products
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 4 | Value 
 ------ | ----- 
@@ -171,7 +171,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.191 with a std of 0.196
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | differences in peak amplitudes between definitive one-minute and one-second data products observed
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 5 | Value 
 ------ | ----- 
@@ -194,7 +194,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.192 with a std of 0.211
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | good agreement between definitive one-minute and one-second data products
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 6 | Value 
 ------ | ----- 
@@ -217,7 +217,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of -0.008 with a std of 0.195
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | good agreement between definitive one-minute and one-second data products
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 7 | Value 
 ------ | ----- 
@@ -240,7 +240,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.097 with a std of 0.214
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | differences in peak amplitudes between definitive one-minute and one-second data products observed
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 8 | Value 
 ------ | ----- 
@@ -263,7 +263,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.117 with a std of 0.189
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | good agreement between definitive one-minute and one-second data products
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 9 | Value 
 ------ | ----- 
@@ -286,7 +286,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.096 with a std of 0.189
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | good agreement between definitive one-minute and one-second data products
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 10 | Value 
 ------ | ----- 
@@ -309,7 +309,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.161 with a std of 0.356
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | good agreement between definitive one-minute and one-second data products
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 11 | Value 
 ------ | ----- 
@@ -332,7 +332,7 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.101 with a std of 0.178
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | differences in peak amplitudes between definitive one-minute and one-second data products observed
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
 
 Month 12 | Value 
 ------ | ----- 
@@ -355,4 +355,4 @@ Samplingrate | 1.0 sec
 delta F | mean delta F of 0.099 with a std of 0.184
 F | found independend f with sampling period: 1.0 sec
 Definitive comparison | good agreement between definitive one-minute and one-second data products
-Contact | ['cafinn@usgs.gov']
+Contact | ['observer@observatory.obs']
