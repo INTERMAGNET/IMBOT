@@ -54,7 +54,7 @@ Submission formats and compression are highly variable. Although only two genera
 
 # Local reference for development purposes 
 # ------------------------------------------------------------
-local = True
+local = False
 if local:
     import sys
     sys.path.insert(1,'/home/leon/Software/magpy/')
@@ -228,8 +228,12 @@ def CopyTemporary(pathsdict, tmpdir="/tmp", logdict={}):
                 else:
                     if not os.path.isdir(src):
                         # eventually use a filter method here like "if not fname in []"
-                        copyfile(src, dst)
-                        condict[fname] = "file copied"
+                        try:
+                            copyfile(src, dst)
+                            condict[fname] = "file copied"
+                        except:
+                            condict[fname] = "copying file failed"
+
 
             logdict[element] = condict
             logdict['temporaryfolder'] = newdir
