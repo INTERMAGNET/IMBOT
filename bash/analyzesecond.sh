@@ -78,7 +78,7 @@ curlftpfs -o user=$GINSEC,allow_other $GINIP $MOUNTSEC
 curlftpfs -o user=$GINMIN,allow_other $GINIP $MOUNTMIN
 
 
-if [ grep -qs "$MOUNTSEC" /proc/mounts ] && [ grep -qs "$MOUNTMIN" /proc/mounts ]; then
+if grep -qs "$MOUNTSEC" /proc/mounts && grep -qs "$MOUNTMIN" /proc/mounts; then
   MSG="GIN directories mounted."
   echo $MSG
   # Please uncomment using # if you are not using Telegram notifications
