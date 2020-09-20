@@ -54,7 +54,7 @@ Submission formats and compression are highly variable. Although only two genera
 
 # Local reference for development purposes 
 # ------------------------------------------------------------
-local = True
+local = False
 if local:
     import sys
     sys.path.insert(1,'/home/leon/Software/magpy/')
