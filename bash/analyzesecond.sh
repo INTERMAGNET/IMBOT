@@ -73,12 +73,12 @@ mkdir -p $MOUNTMIN
 mkdir -p $MOUNTSEC
 
 # MOUNT ONE SECOND DATA (# eventually add ,allow_others)
-curlftpfs -o user=$GINSEC $GINIP $MOUNTSEC
+curlftpfs -o user=$GINSEC,allow_other $GINIP $MOUNTSEC
 # MOUNT ONE MINUTE DATA
-curlftpfs -o user=$GINMIN $GINIP $MOUNTMIN
+curlftpfs -o user=$GINMIN,allow_other $GINIP $MOUNTMIN
 
 
-if grep -qs "$MOUNTSEC" /proc/mounts; then
+if [ grep -qs "$MOUNTSEC" /proc/mounts ] && [ grep -qs "$MOUNTMIN" /proc/mounts ]; then
   MSG="GIN directories mounted."
   echo $MSG
   # Please uncomment using # if you are not using Telegram notifications

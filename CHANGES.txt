@@ -15,6 +15,7 @@
 1.0.0 general:
     + version 1.0.0 is the first published version, introduced at the IM meeteing winter 2020
     + Python3 compatible
+    + requires MagPy >= 0.9.7 (if cdflib >= 0.3.19 is installed, then MagPy >= 0.9.8 is necessary)
 
 1.0.0 fixed:
     -
