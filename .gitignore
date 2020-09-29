@@ -1,0 +1,12 @@
+*.pyc
+*.py~
+*.py.bak
+*.py.old
+*.md~
+*.txt~
+*.pptx
+*.odp
+build
+dist
+dist/*.egg
+
