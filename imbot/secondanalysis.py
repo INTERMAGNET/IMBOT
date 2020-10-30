@@ -123,7 +123,7 @@ IMAGCDFKEYDICT = {     'FormatDescription':'DataFormat',
 
 
 
-def GetUploadInformation(sourcepath, checkrange = 2, obslist = []):
+def GetUploadInformation(sourcepath, checkrange = 2, obslist = [],excludeobs=[]):
         """
         DESCRIPTION:
             Method will check directory structure of the STEP1 one second directory
@@ -141,8 +141,9 @@ def GetUploadInformation(sourcepath, checkrange = 2, obslist = []):
         storage = {}
         logdict = {}              
         for root, dirs, files in os.walk(sourcepath):
-            level = root.replace(sourcepath, '').count(os.sep)
-            if (len(obslist) > 0 and root.replace(sourcepath, '')[1:4] in obslist) or len(obslist) == 0: 
+          level = root.replace(sourcepath, '').count(os.sep)
+          if (len(obslist) > 0 and root.replace(sourcepath, '')[1:4] in obslist) or len(obslist) == 0:
+            if (len(excludeobs) > 0 and not root.replace(sourcepath, '')[1:4] in excludeobs) or len(excludeobs) == 0:
               if level == 1:
                 print (root)
                 # append root, and ctime of youngest file in directory
@@ -1262,6 +1263,7 @@ def main(argv):
     checkrange = 3 # 3 hours
     statusmsg = {}
     obslist = []
+    excludeobs = []
     source = ''
     destination = ''
     pathminute = ''
@@ -1302,6 +1304,7 @@ def main(argv):
             print ('-m            : a json file with full path for "memory"')
             print ('-q            : a comma separated list of quiet days for noiselevel determination')
             print ('-o            : a comma separated list of Obscodes/directories to deal with')
+            print ('-x            : a comma separated list of Obscodes/directories to exclude')
             print ('-i            : basic directory on one minute data (IAF files)')
             print ('-e            : path to a local email repository')
             print ('-n            : path for telegram configuration file for notifications')
@@ -1330,8 +1333,10 @@ def main(argv):
             pathemails = arg
         elif opt in ("-q", "--quietdaylist"):
             quietdaylist = arg.split(',')
-        elif opt in ("-o", "--observatorires"):
+        elif opt in ("-o", "--observatories"):
             obslist = arg.replace(" ","").split(',')
+        elif opt in ("-x", "--exclude"):
+            excludeobs = arg.replace(" ","").split(',')
         elif opt in ("-n", "--notify"):
             tele = os.path.abspath(arg)
         elif opt in ("-c", "--mailcfg"):
@@ -1591,7 +1596,7 @@ def main(argv):
     # 1. got to source directory and locate files, check memory and whether file dates agree with criterion
 
     ## 1.1 Get current directory structure of source
-    currentdirectory, logdict = GetUploadInformation(source, checkrange=checkrange,obslist=obslist)
+    currentdirectory, logdict = GetUploadInformation(source, checkrange=checkrange,obslist=obslist,excludeobs=excludeobs)
 
     print ("Previous uploads: ", memdict)
     ## 1.2 Subtract the two directories - only new files remain
