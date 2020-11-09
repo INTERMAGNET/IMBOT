@@ -1622,6 +1622,8 @@ def main(argv):
                 print ("---------------------------- ")
                 print ("MAILTEXT for {} to be send to {}:\n{}".format(para.get('obscode'), email, mailtext))
 
+                # DEFINE A LIST OF OBERVATORIES FOR A TEST RUN - ONLY THESE OBSERVATORIES WILL GET NOTIFICATIONS
+                #testobslist = ['WIC']
                 # Send out emails
                 # -----------
                 if email:
@@ -1636,8 +1638,10 @@ def main(argv):
                     maildict['From'] = 'roman_leonhardt@web.de'
                     print ("Joined Mails", email)
                     print ("-> currently not used. Mails only send to leon")
+                    # if para.get('obscode').upper() in testobslist:
+                    #     maildict['To'] = email
+                    # else
                     maildict['To'] = 'ro.leonhardt@googlemail.com'
-                    #maildict['To'] = email
                     sm(maildict)
                 else:
                     #logdict['Not yet informed'].append(para.get('obscode'))
