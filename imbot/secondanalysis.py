@@ -28,27 +28,11 @@ APPLICATION:
   update analysis.sh and follow instructions given in this bash file
 
 
-TODO presentation: 
-Submission formats and compression are highly variable. Although only two general underlying formats have been used, various different packing/archiving routines are used. 
+TODO: 
+ - Submission formats and compression are highly variable. Although only two general underlying formats have been used, various different packing/archiving routines are used. 
 
-- add some general characteristics of 2016 submission (2 slides)
-- introduce IMBOT (1 slide)
-- how does IMBOT work (1 slide)
-- what does IMBOT do (2 slides) - process and level description
-- summary of IMBOT analysis of 2016 (failed, level1, level2)
-- example output directory of level1
-- demonstrate equality of raw submission and converted data
-- Show e-mail of level1
-- Show Report of level1
-- how to submit a revision to a level1 submission 
-- most common issue for 2016:
-  * leading to level0
-  * leading to level1
-    StandardLevel not provided for IAGA-2002 submissions
-- example output directory of level2
-- show e-mail of level2
-- Show Report of level2
-- Summary
+ - Detailed instructions for submitters
+    -> only single level in compressed files
 
 """
 
@@ -85,7 +69,7 @@ name = "IMBOT"
 #    rename all level files from level1_underreview.md, level2_underreview.md to level1.md, level2.md
 #    if no changes occured within 3 months
 
-partialcheck_v1 = {             
+partialcheck_v1 = {
 		'IMOS-01' : 'Time-stamp accuracy (centred on the UTC second): 0.01s',
 		'IMOS-02' : 'Phase response: Maximum group delay: ±0.01s',
 		'IMOS-03' : 'Maximum filter width: 25 seconds',
@@ -139,7 +123,7 @@ def GetUploadInformation(sourcepath, checkrange = 2, obslist = [],excludeobs=[])
         print ("Running - getting upload information")
         print (obslist)
         storage = {}
-        logdict = {}              
+        logdict = {}
         for root, dirs, files in os.walk(sourcepath):
           level = root.replace(sourcepath, '').count(os.sep)
           if (len(obslist) > 0 and root.replace(sourcepath, '')[1:4] in obslist) or len(obslist) == 0:
@@ -593,7 +577,7 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
                 tablelist.append(tableline)
 
         logdict['Issues'] = issuedict
- 
+
         return tablelist, logdict
 
 
@@ -826,10 +810,10 @@ def PowerAnalysis(dailystreamlist, readdict, period=10.):
                     try:
                         #print( "getting power") 
                         (psdm, asdm, freqm) = GetDayPSD(dayst, 'x')
-                        #print( "getting power 2", len(asdm)) 
+                        #print( "getting power 2", len(asdm))
                         asdmar = np.asarray(asdm)
                         idx = (np.abs(freqm - (1./period))).argmin()   # for testing purpose the noise level is calculated between nyquist and 10 sec
-                        #print( "getting power 3", idx) 
+                        #print( "getting power 3", idx)
                         noiselevel = np.mean(asdmar[idx:])
                         #print( "getting power 4", noiselevel)
                         noiselevellist.append(noiselevel)
@@ -964,7 +948,7 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
                 for warn in warningdict:
                     # get the issue and add the months
                     validmonths = warningsummary.get(warningdict.get(warn),[])
-                    validmonths.append(month) 
+                    validmonths.append(month)
                     warningsummary[warningdict[warn]] = validmonths
                 # Establish a monthly table with all information
                 definitivedict[month] = reportdict[month].get("DefinitiveStatus")
@@ -1154,16 +1138,117 @@ def WriteMetaUpdateFile(destination, dictionary):
         return True
 
 
-def GetDataChecker(obscode):
+def GetConf(path):
+    """
+    Version 2020-10-28
+    DESCRIPTION:
+       can read a text configuration file and extract lists and dictionaries
+    SUPPORTED:
+       key   :    stringvalue                                 # extracted as { key: str(value) }
+       key   :    intvalue                                    # extracted as { key: int(value) }
+       key   :    item1,item2,item3                           # extracted as { key: [item1,item2,item3] }
+       key   :    subkey1:value1;subkey2:value2               # extracted as { key: {subkey1:value1,subkey2:value2} }
+       key   :    subkey1:value1;subkey2:item1,item2,item3    # extracted as { key: {subkey1:value1,subkey2:[item1...]} }
+    """
+    ok = True
+    if ok:
+        #try:
+        config = open(path,'r')
+        confs = config.readlines()
+        confdict = {}
+        for conf in confs:
+            conflst = conf.split(':')
+            if conf.startswith('#'):
+                continue
+            elif conf.isspace():
+                continue
+            elif len(conflst) == 2:
+                conflst = conf.split(':')
+                key = conflst[0].strip()
+                value = conflst[1].strip()
+                # Lists
+                if value.find(',') > -1:
+                    value = value.split(',')
+                    value = [el.strip() for el  in value]
+                try:
+                    confdict[key] = int(value)
+                except:
+                    confdict[key] = value
+            elif len(conflst) > 2:
+                # Dictionaries
+                if conf.find(';') > -1 or len(conflst) == 3:
+                    ele = conf.split(';')
+                    main = ele[0].split(':')[0].strip()
+                    cont = {}
+                    for el in ele:
+                        pair = el.split(':')
+                        # Lists
+                        subvalue = pair[-1].strip()
+                        if subvalue.find(',') > -1:
+                            subvalue = subvalue.split(',')
+                            subvalue = [el.strip() for el  in subvalue]
+                        try:
+                            cont[pair[-2].strip()] = int(subvalue)
+                        except:
+                            cont[pair[-2].strip()] = subvalue
+                    confdict[main] = cont
+                else:
+                    print ("Subdictionary expected - but no ; as element divider found")
+    #except:
+    #    print ("Problems when loading conf data from file. Using defaults")
+
+    return confdict
+
+
+def GetDataChecker(obscode, path="/path/to/refereelist.cfg"):
         """
         DESCRIPTION
-            determin a data checker for the Observatory defined by obscode.
+            determine a data checker for the Observatory defined by obscode.
+        PARAMETER:
+            path ideally should be the same as for mail.cfg
         RETURNS:
             two strings, a name and a email address
         """
-        # TODO
+        checker = ''
+        checkermail = ''
+        fallback = 'Max Mustermann'
+        fallbackmail = 'max@mustermann.at'
+        if not os.path.isfile(path):
+            print ("DID NOT FIND REFEREE CONFIGURATION FILE")
+            return fallback, fallbackmail
+        checkdict = GetConf(path)
+        for mail in checkdict:
+            subdict = checkdict[mail]
+            obslist = subdict.get('obslist',[])
+            if obscode in obslist:
+                checker = subdict.get('name','')
+                checkermail = mail
+            if len(obslist) == 0:
+                fallback = subdict.get('name','')
+                fallbackmail = mail
+        if not checker == '' and not checkermail == '':
+            return checker, checkermail
+        else:
+            return fallback, fallbackmail
 
-        return "Max Mustermann", "max@mustermann.at"
+
+def GetMailFromList(obscode, path="/path/to/mailinglist.cfg"):
+        """
+        DESCRIPTION
+            locate any additional mailing addresses for obscode. Replace
+            other mail addresses.
+        PARAMETER:
+            path ideally should be the same as for mail.cfg
+        RETURNS:
+            list with email address(es)
+        """
+        if not os.path.isfile(path):
+            print ("DID NOT FIND MAILINGLIST CONFIGURATION FILE")
+            return []
+        obsdict = GetConf(path)
+        maillist = obsdict.get(obscode,[])
+
+        return maillist
 
 
 def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max Mustermann"):
@@ -1186,7 +1271,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
 
         maintext += "If you have any questions regarding the evalutation process please check out the general instructions (github link) or contact the IMBOT manager.\n\n"
         maintext += "\nSincerely,\n       IMBOT\n\n"
- 
+
 
         if int(level) < 2:
             instructionstext = """
@@ -1242,7 +1327,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
         to be found in directory level/"OBSCODE" along with 
         the report.
         Please add the requested data into this file.
-        
+
     3.4 For file contents updates (level 1):
         Upload the new/corrected files and replace/delete old files.
 
@@ -1306,7 +1391,7 @@ def main(argv):
             print ('-o            : a comma separated list of Obscodes/directories to deal with')
             print ('-x            : a comma separated list of Obscodes/directories to exclude')
             print ('-i            : basic directory on one minute data (IAF files)')
-            print ('-e            : path to a local email repository')
+            print ('-e            : path to a local email repository - names: mailinglist.cfg, refereelist.cfg')
             print ('-n            : path for telegram configuration file for notifications')
             print ('-c            : path for mail configuration file "mail.cfg" - default is /etc/martas')
             print ('-l            : path for logs and logging info, default is /var/log/magpy')
@@ -1344,6 +1429,7 @@ def main(argv):
         elif opt in ("-l", "--logpath"):
             logpath = os.path.abspath(arg)
 
+
     if not os.path.exists(os.path.join(logpath,"secondanalysis")):
         os.makedirs(os.path.join(logpath,"secondanalysis"))
 
@@ -1351,7 +1437,7 @@ def main(argv):
         # ################################################
         #          Telegram Logging
         # ################################################
-        ## New Logging features 
+        ## New Logging features
         from martas import martaslog as ml
         # tele needs to provide logpath, and config path ('/home/cobs/SCRIPTS/telegram_notify.conf')
         telelogpath = os.path.join(logpath,"secondanalysis","telegram.log")
@@ -1500,7 +1586,7 @@ def main(argv):
                 # For each Obs create report and mailtext for submitter, select and inform data checker
                 # -----------
                 level = WriteReport(destinationpath, para, readdict, logdict, tablelist=tablelist)
-                nameofdatachecker, referee = GetDataChecker(para.get('obscode'))
+                nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist.cfg"))
                 try:
                     stationname = readdict.get('1').get('Header').get('StationName','')
                 except:
@@ -1509,16 +1595,17 @@ def main(argv):
 
                 # Create mailing list
                 # -----------
-                # too be done: read file with -e emails option
+                # if alternative email contacts are provided, then use those
+                # read file with -e emails option - name: mailinglist.cfg
                 # BOU  :  newcontact@usgs.org
-                # read dictionary as provided in file with -e option
-                # if not maildict.get(OBSCODE,'') == '':
-                #     emails = maildict.get(OBSCODE,'')
+                alternativeemails = GetMailFromList(obscode, os.path.join(pathemails,"mailinglist.cfg"))
+                if alternativeemails and len(alternativeemails) > 0:
+                    emails = alternativeemails
 
                 #print (emails)
                 if emails:
                     #email = emails[0]
-                    if level == 2 and referee: # referee is determined by GetDataChecker - TODO
+                    if level == 2 and referee: # referee is determined by GetDataChecker
                         emails.append(referee)
                     if manager:
                         for man in manager:
