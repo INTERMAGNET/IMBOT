@@ -82,7 +82,7 @@ def sendmail(dic):
     """
     Function for sending mails with attachments
     """
-    
+
     #if not smtpserver:
     #    smtpserver = 'smtp.web.de'
     if 'Attach' in dic:
@@ -132,7 +132,8 @@ def sendmail(dic):
         part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(f))
         msg.attach(part)
 
-    smtp = SMTP()
+    # the server need to be specified in python 3.7 and 3.8
+    smtp = SMTP(dic.get('smtpserver'))
     smtp.set_debuglevel(False)
     if port:
         smtp.connect(dic.get('smtpserver'), port)

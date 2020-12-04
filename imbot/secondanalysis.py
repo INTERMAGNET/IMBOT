@@ -21,14 +21,14 @@ PREREQUISITES:
    - add credentials
    - test
    - update crontab
- 
 
-APPLICATION: 
+
+APPLICATION:
 
   update analysis.sh and follow instructions given in this bash file
 
 
-TODO: 
+TODO:
  - Submission formats and compression are highly variable. Although only two general underlying formats have been used, various different packing/archiving routines are used. 
 
  - Detailed instructions for submitters
@@ -36,7 +36,7 @@ TODO:
 
 """
 
-# Local reference for development purposes 
+# Local reference for development purposes
 # ------------------------------------------------------------
 local = False
 if local:
@@ -114,7 +114,7 @@ def GetUploadInformation(sourcepath, checkrange = 2, obslist = [],excludeobs=[])
             It will extract directory, amount of files, filetype, and last modification date
         APPLICTAION:
             to check step 1 one second directory
-            Suggested technqiue for updating previously submitted and updated step10,level1, and level2 data:
+            Suggested technique for updating previously submitted and updated step10,level1, and level2 data:
             Data passing all level0 clearance is moved to a new path (raw: step1, level1-3: level)
             --- extract level information from directory:
             --- thus add a file called " levelx.txt" with the highest reached level after each treatment, add a asterix for data awaiting a check
@@ -865,7 +865,7 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
             Write a data report with basic information on submitted data set and possible issues
             The report will be written in markup language into the destination directory.
             The name of the report depends on the suggested data level.
-            level0.txt (if reading data failed) 
+            level0.txt (if reading data failed)
             level1*.txt (if reading was successful, but basic information is missing)
             level2*.txt (if reading was successful, and level 2 criteria are met)
         RETURN
@@ -919,6 +919,7 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
         issuesummary = {}
         improvementsummary = {}
         warningsummary = {}
+        print ("Running WriteReport")
         for month in reportdict:
             if month in ['1','2','3','4','5','6','7','8','9','10','11','12']:
                 monthlydict[month] = reportdict[month]
@@ -929,11 +930,11 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
                 issuedict = reportdict[month].get("Issues")
                 improvedict = reportdict[month].get("Improvements")
                 warningdict = reportdict[month].get("Warnings")
-                print ("Test warning messages", month, warningdict) 
+                print ("   Warning messages for month {}: {}".format(month, warningdict))
                 headerdict = reportdict[month].get("Header")
                 for issue in issuedict:
                     # get the issue and add the months
-                    #print ("Got here", issue) 
+                    #print ("Got here", issue)
                     validmonths = issuesummary.get(issuedict.get(issue),[])
                     validmonths.append(month)
                     #print ("Current months", validmonths)
@@ -960,9 +961,9 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
         else:
             level = 0
 
-        #print ("ISSUES", issuesummary)
-        #print ("IMPROVEMENTS", improvementsummary)
-        #print ("WARNINGs", warningsummary)
+        print ("   ISSUES", issuesummary)
+        print ("   IMPROVEMENTS", improvementsummary)
+        print ("   WARNINGS SUMMARY:", warningsummary)
         #print ("Generaldict", generaldict)
 
         for issue in issuesummary:
@@ -1084,6 +1085,7 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
         if len(issuesum) > 0:
             WriteMetaUpdateFile(os.path.join(destinationpath,"meta_{}.txt".format(obscode)), issuesum)
 
+        print ("... WriteReport finished")
         return level
 
 
@@ -1128,7 +1130,7 @@ def WriteMetaUpdateFile(destination, dictionary):
 
         for key in dictionary:
             if headlinedict.get(key,''):
-                text.append("{}".format(headlinedict[key]))  
+                text.append("{}".format(headlinedict[key]))
             text.append("{}  :  {}\n\n".format(KeyConvert(key), dictionary[key]))
         try:
             with open(destination, 'w') as outfile:
@@ -1295,7 +1297,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
 
     2.2. The report is titeled "OBSCODE" - Level 1
 
-         Your data is provisionally accepted by INTERMAGNET. 
+         Your data is provisionally accepted by INTERMAGNET.
          There are, however, minor issues. Mostly only some meta information, which is required for 
          INTERMAGNET archiving is missing. Please follow the instructions in section 3 for 
          obtaining level 2 clearance.
@@ -1313,7 +1315,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
          Please note, that level 3 evaluation also contains a very restrictive data quality check.
          Failing a level 3 evaluation has no consequence for your INTERMAGNET status. Please
          analyze the issues: it might be useful to trigger ... for improving instrumentation, 
-         powering and eventually instruments location.  
+         powering and eventually instruments location.
 
     3. If you are ready to perform updates to your level 1 submission:
 
@@ -1324,7 +1326,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
 
     3.3 For meta information updates (level 1 and level 2):
         Please download "metainfo_update.txt" from the GIN
-        to be found in directory level/"OBSCODE" along with 
+        to be found in directory level/"OBSCODE" along with
         the report.
         Please add the requested data into this file.
 
@@ -1344,7 +1346,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
 
 
 def main(argv):
-    imbotversion = '1.0.0'
+    imbotversion = '1.0.1'
     checkrange = 3 # 3 hours
     statusmsg = {}
     obslist = []
@@ -1565,7 +1567,7 @@ def main(argv):
                     readdict[str(i+1)] = newdict
                     loggingdict.clear()
 
-                readdict['MagPyVersion'] = magpyversion 
+                readdict['MagPyVersion'] = magpyversion
 
                 # perform noise analysis on selcted days
                 # -----------
@@ -1586,11 +1588,13 @@ def main(argv):
                 # For each Obs create report and mailtext for submitter, select and inform data checker
                 # -----------
                 level = WriteReport(destinationpath, para, readdict, logdict, tablelist=tablelist)
+                print ("-Asigning data checker")
                 nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist.cfg"))
                 try:
                     stationname = readdict.get('1').get('Header').get('StationName','')
                 except:
                     stationname = ''
+                print ("-Creating Mail")
                 mailtext = CreateMail(level, para.get('obscode'), stationname=stationname, year=readdict.get("Year"), nameofdatachecker=nameofdatachecker)
 
                 # Create mailing list
@@ -1598,7 +1602,7 @@ def main(argv):
                 # if alternative email contacts are provided, then use those
                 # read file with -e emails option - name: mailinglist.cfg
                 # BOU  :  newcontact@usgs.org
-                alternativeemails = GetMailFromList(obscode, os.path.join(pathemails,"mailinglist.cfg"))
+                alternativeemails = GetMailFromList(para.get('obscode'), os.path.join(pathemails,"mailinglist.cfg"))
                 if alternativeemails and len(alternativeemails) > 0:
                     emails = alternativeemails
 
@@ -1642,6 +1646,7 @@ def main(argv):
                     #     maildict['To'] = email
                     # else
                     maildict['To'] = 'ro.leonhardt@googlemail.com'
+                    print ("MAILDICT", maildict)
                     sm(maildict)
                 else:
                     #logdict['Not yet informed'].append(para.get('obscode'))
@@ -1680,7 +1685,7 @@ def main(argv):
         return reportdict
 
     """
-    Main Prog    
+    Main Prog
     """
 
     print ("Running IMBOT version {}".format(imbotversion))
@@ -1688,6 +1693,7 @@ def main(argv):
 
     ## 1.1 Get current directory structure of source
     currentdirectory, logdict = GetUploadInformation(source, checkrange=checkrange,obslist=obslist,excludeobs=excludeobs)
+    print ("Obtained Step1 directory: {}".format(currentdirectory))
 
     print ("Previous uploads: ", memdict)
     ## 1.2 Subtract the two directories - only new files remain
@@ -1697,6 +1703,7 @@ def main(argv):
     # 2. For each new input --- copy files to a temporary local directory (unzip if necessary)
     logdict = CopyTemporary(newdict, tmpdir=tmpdir, logdict=logdict)
 
+    print ("Running conversion and data check:")
     # 3. Convert Data includes validity tests, report creation and exporting of data
     fullreport = ConvertData(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,debug=debug)
 
@@ -1704,6 +1711,7 @@ def main(argv):
 
     for key in newdict:
         memdict[key] = newdict[key]
+    print ("Updating Memory: {}".format(memdict))
     success = WriteMemory(memory, memdict)
 
     # 5. send a report to the IMBOT manager containing failed and successful analysis
@@ -1733,6 +1741,3 @@ def main(argv):
 
 if __name__ == "__main__":
    main(sys.argv[1:])
-
-
-
