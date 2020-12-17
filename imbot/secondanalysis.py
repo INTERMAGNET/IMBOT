@@ -1641,7 +1641,7 @@ def main(argv):
                     maildict['Subject'] = 'IMBOT one-second analysis for {}'.format(para.get('obscode'))
                     maildict['From'] = 'roman_leonhardt@web.de'
                     print ("Joined Mails", email)
-                    print ("-> currently not used. Mails only send to leon")
+                    print ("-> currently only used for selected. Other mails only send to leon")
                     if para.get('obscode').upper() in testobslist:
                         maildict['To'] = email
                     else:
