@@ -1260,6 +1260,9 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
 
         maintext += "LEVEL {}\n\n".format(level)
 
+        # TODO to be removed
+        maintext += "!! Please note that this is just a preliminary test of an automatc evaulation routine. Although written in the text, ratings NOT related to any decision of INTERMAGNET. The following text and reports are just suggestions to be reviewed by the INTERMAGNET data commitee. !!\n\n"
+
         level0 = "Your data did not pass the automatic reading and conversion test. Please update your data submission.\nPlease read the attached report and instructions before resubmission.\n\n" 
         level1 = "Your data has provisionally been accepted by INTERMAGNET. Congratulations!\n\nIn order to continue the evaluation process some issues need to be clarified. Please read the attached report and instructions.\n\n"
         level2 = "Your data has provisionally been accepted by INTERMAGNET. Congratulations!\n\nYour data fulfills all requirements for a final review. A level 2 data product is already an excellent source for high resolution magnetic information. Your data set has been assigned to an INTERMAGNET data checker for final evaluation regarding data quality.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all check on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
