@@ -1104,16 +1104,16 @@ def WriteMetaUpdateFile(destination, dictionary):
             except:
                 return magpykey
 
-        text = ['## Parameter sheet for additional/missing metainformation\n',
+        text = ['## Parameter sheet for additional or missing meta information\n',
                 '## ------------------------------------------------------\n',
-                '## Please provide key - value pairs as shown below.\n',
+                '## Please provide "key : value" pairs as shown below.\n',
                 '## The key need to correspond to the IMAGCDF key. Please\n',
                 '## check out the IMAGCDF format description at INTERMAGNET\n',
                 '## for details. Alternatively you can use MagPy header keys.\n',
                 '## Values must not contain special characters or colons.\n',
-                '## Enter "None" to indicate that a value is not available\n',
-                '## Comments need to start in new lines and every comment line.\n',
-                '## must start with a hash.\n',
+                '## Enter "None" to indicate that a value is not available.\n',
+                '## Comments need to start in new lines beginning with a\n',
+                '## hash.\n',
                 '## Please note - you can also provide optional keys here.\n',
                 '## \n',
                 '## Example:\n',
@@ -1278,69 +1278,73 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
         if int(level) < 2:
             instructionstext = """
     -----------------------------------------------------------------------------------
-    Instructions to update file and or meta information for re-evaluation of your data:
+    Instructions to update files and meta information for re-evaluation of your data:
 
-    1. Do NOT edit any file in the submitting directories as long as you are NOT ready to submit a revised set
+    1. Do NOT edit any file in the submitting directories as long as you are NOT ready to submit a revised version
 
-    2. Please check the report for issues and suggested improvements
+    2. Check the report you received by mail for issues and suggested improvements
 
          The report is attached to this mail and can also be found within the level/OBSCODE directory of the GIN.
          The report is a text file in markdown language. You can read it in any text editor
          or you might choose a special markdown editor (e.g. https://dillinger.io/)  
 
-    2.1. The report is titled "OBSCODE" - Level 1 failed
+    2.1. The report is titled "level0_underreview"
 
-         There are general problems with the file structure, data files,
-         readability of your files. Please check the submitted files and convert them either 
-         to IAGA-2002 and or IMAGCDF. Data which can be read by MagPy can usually also be 
-         analyzed. Please upload corrected files into the step1 directory of the GIN.
+         There are general problems with file structure, data files, or
+         readability of your files. Eventually a file got corrupted during upload. Please 
+         check the submitted files and convert them either to IAGA-2002 and or IMAGCDF.
+         Data which can be read by MagPy can usually also be analyzed. Please upload 
+         corrected files into the step1 directory of the GIN.
 
-    2.2. The report is titeled "OBSCODE" - Level 1
+    2.2. The report is titeled "level1_underreview"
 
          Your data is provisionally accepted by INTERMAGNET.
-         There are, however, minor issues. Mostly only some meta information, which is required for 
-         INTERMAGNET archiving is missing. Please follow the instructions in section 3 for 
-         obtaining level 2 clearance.
+         There are, however, minor issues. Mostly some meta information, which is required for 
+         INTERMAGNET archiving is missing. Please follow the instructions in section 3 of these 
+         instructions on how to obtain a level 2 clearance.
 
-    2.3. The report is titled "OBSCODE" - Level 2
+    2.3. The report is titled "level2_underreview"
 
          Your data set is accepted by INTERMAGNET and meets the criteria for final level 3 evaluation. 
          Nevertheless, please check the report for suggested improvements and follow the steps 
          outlined in section 3 if you want to consider them for the final data product (not obligatory). 
          A reviewer will automatically be assigned, who will manually check your submission. You
          will get a detailed report and contact information for the referee. Please note:
-         Data checkers volunteered ... They perform these checks beside their usual workload.
+         Data checkers do all reviews and evaluation beside their usual duites. Depending on their workload
+         it might need a while.
          Usually, a final data check summary is obtained within three months after level 2 submission. 
 
-         Please note, that level 3 evaluation also contains a very restrictive data quality check.
-         Failing a level 3 evaluation has no consequence for your INTERMAGNET status. Please
-         analyze the issues: it might be useful to trigger ... for improving instrumentation, 
-         powering and eventually instruments location.
+         A level 3 evaluation contains a data quality check of your one second data product.
+         Failing a level 3 evaluation has no consequence for your INTERMAGNET status which is 
+         related to one-minute data. Anyway, please analyze any upcoming issues carefully:
+         it might be useful to check your data preparation
+         routines and might trigger improvements of instrumentation, 
+         powering systems and, eventually, instruments location.
 
-    3. If you are ready to perform updates to your level 1 submission:
+    3. You are ready to perform updates to your submission
 
     3.1 Prepare you updates locally and upload them altogether.
 
-    3.2 Upload new files and filled out sheets into the
+    3.2 Upload new files and information sheets into the
         step1 directory of the GIN.
 
-    3.3 For meta information updates (level 1 and level 2):
-        Please download "metainfo_update.txt" from the GIN
-        to be found in directory level/"OBSCODE" along with
-        the report.
-        Please add the requested data into this file.
+    3.3 For meta information updates:
+        Please use the "meta_OBSCODE.txt" template attached to this mail or download it 
+        from the GIN within directory level/"OBSCODE". 
+        Please add the requested meta data into this file.
 
-    3.4 For file contents updates (level 1):
-        Upload the new/corrected files and replace/delete old files.
+    3.4 For data file updates:
+        Upload the new/corrected files and replace/delete old files within
+        the step1 directory of teh GIN. 
 
-    3.5 Approximately three hours after you finished your uploads
-        an automatic evaluation will be triggered.
+    3.5 Within 24 hours after you finished your uploads
+        an automatic (re)evaluation will be triggered.
 
     4. Problems
 
         If you have problems or questions please contact the IMBOT manager.
                                """
-            maintext += instructionstext
+            maintext += instructionstext.replace('OBSCODE',obscode)
 
         return maintext
 
