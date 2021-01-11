@@ -1,6 +1,6 @@
 # How to get IMBOT running
 
-IMBOT does not come with an installer. In order to run it you just need to clone the GITHUB repository to your local harddrive. All jobs and configurations need to be adjusted manually. A periodic execution is perfomred using crontab. Please note, although the code is platform independent it is highly recommended to run IMBOT in a LINUX environment. All instructions will assume such a platform. 
+IMBOT consists of several python3.x scripts. IMBOT does not come with an installer. In order to run it you just need to clone the GITHUB repository to your local harddrive. All jobs and configurations need to be adjusted manually. A periodic execution is perfomred using crontab. Please note, although the code is platform independent it is highly recommended to run IMBOT in a LINUX environment. All instructions will assume such a platform. IMBOT requires Python >= 3.6. 
 
 ## Prerequisites
 
