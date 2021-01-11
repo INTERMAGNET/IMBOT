@@ -1261,7 +1261,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
         maintext += "LEVEL {}\n\n".format(level)
 
         # TODO to be removed
-        maintext += "!! Please note that this is just a preliminary test of an automatc evaulation routine. Although written in the text, ratings NOT related to any decision of INTERMAGNET. The following text and reports are just suggestions to be reviewed by the INTERMAGNET data commitee. !!\n\n"
+        maintext += "!! Please note: this is just a preliminary test of an automatc evaluation routine. The following text is fictional, ratings are NOT related to any decision of INTERMAGNET. Text and reports are suggestions to be reviewed by the INTERMAGNET data commitee. !!\n\n"
 
         level0 = "Your data did not pass the automatic reading and conversion test. Please update your data submission.\nPlease read the attached report and instructions before resubmission.\n\n" 
         level1 = "Your data has provisionally been accepted by INTERMAGNET. Congratulations!\n\nIn order to continue the evaluation process some issues need to be clarified. Please read the attached report and instructions.\n\n"
@@ -1372,7 +1372,7 @@ def main(argv):
     debug=False
 
     try:
-        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:e:l:c:",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutesource=","emails=","logpath=","mailcfg=",])
+        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:e:l:c:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutesource=","emails=","logpath=","mailcfg=","debug=",])
     except getopt.GetoptError:
         print ('secondanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutesource> -e <emails> -l <logpath> -c <mailcfg>')
         sys.exit(2)
@@ -1437,7 +1437,12 @@ def main(argv):
             mailcfg = os.path.abspath(arg)
         elif opt in ("-l", "--logpath"):
             logpath = os.path.abspath(arg)
+        elif opt in ("-D", "--debug"):
+            debug = True
 
+    if debug and source == '':
+        print ("Basic code test - done")
+        sys.exit(0)
 
     if not os.path.exists(os.path.join(logpath,"secondanalysis")):
         os.makedirs(os.path.join(logpath,"secondanalysis"))

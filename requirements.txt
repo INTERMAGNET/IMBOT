@@ -1,4 +1,4 @@
 geomagpy
-telegram_send
+telegram-send
 
 

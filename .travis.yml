@@ -6,7 +6,9 @@ cache: pip
 before_install:
   - sudo apt-get -y install gcc gfortran
 install:
+  - pip install -U tornado==5.1.1   # latest version to support python2.7
   - pip install -r requirements.txt
 script:
   - python imbot/telegramnote.py
   - python imbot/martas.py
+  - python imbot/secondanalysis.py -D
