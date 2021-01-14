@@ -1274,7 +1274,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
         elif int(level) == 2:
             maintext += level2
 
-        maintext += "If you have any questions regarding the evalutation process please check out the general instructions (github link) or contact the IMBOT manager.\n\n"
+        maintext += "If you have any questions regarding the evalutation process please check out the general instructions (https://github.com/INTERMAGNET/IMBOT/blob/master/README.md) or contact the IMBOT manager.\n\n"
         maintext += "\nSincerely,\n       IMBOT\n\n"
 
 
@@ -1287,7 +1287,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
 
     2. Check the report you received by mail for issues and suggested improvements
 
-         The report is attached to this mail and can also be found within the level/OBSCODE directory of the GIN.
+         The report is attached to this mail and can also be found within the year/OBSCODE directory of the GIN.
          The report is a text file in markdown language. You can read it in any text editor
          or you might choose a special markdown editor (e.g. https://dillinger.io/)  
 
@@ -1333,7 +1333,7 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
 
     3.3 For meta information updates:
         Please use the "meta_OBSCODE.txt" template attached to this mail or download it 
-        from the GIN within directory level/"OBSCODE". 
+        from the GIN within directory year/"OBSCODE". 
         Please add the requested meta data into this file.
 
     3.4 For data file updates:

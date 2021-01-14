@@ -19,6 +19,7 @@
        -> only these observatories will get notifications, only these data sets are uploaded to GIN level
     + alternative mail lists working
     + bash script supports upload to GIN (level structure is implemented since 2021-01-14)
+    + activated travis CI tests
 
 
 ####<1.0.0>, <2020-09-29> --
