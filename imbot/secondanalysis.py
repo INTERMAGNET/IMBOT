@@ -1369,12 +1369,13 @@ def main(argv):
     manager = ['ro.leonhardt@googlemail.com']
     memory='/tmp/secondanalysis_memory.json'
     tmpdir="/tmp"
+    testobslist=['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
     debug=False
 
     try:
-        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:e:l:c:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutesource=","emails=","logpath=","mailcfg=","debug=",])
+        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:e:l:c:p:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutesource=","emails=","logpath=","mailcfg=","testobslist=","debug=",])
     except getopt.GetoptError:
-        print ('secondanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutesource> -e <emails> -l <logpath> -c <mailcfg>')
+        print ('secondanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutesource> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -1399,6 +1400,7 @@ def main(argv):
             print ('-q            : a comma separated list of quiet days for noiselevel determination')
             print ('-o            : a comma separated list of Obscodes/directories to deal with')
             print ('-x            : a comma separated list of Obscodes/directories to exclude')
+            print ('-p            : preliminary obslist for full reporting - testobslist')
             print ('-i            : basic directory on one minute data (IAF files)')
             print ('-e            : path to a local email repository - names: mailinglist.cfg, refereelist.cfg')
             print ('-n            : path for telegram configuration file for notifications')
@@ -1437,8 +1439,11 @@ def main(argv):
             mailcfg = os.path.abspath(arg)
         elif opt in ("-l", "--logpath"):
             logpath = os.path.abspath(arg)
+        elif opt in ("-p", "--testobslist"):
+            testobslist = arg.split(',')
         elif opt in ("-D", "--debug"):
             debug = True
+
 
     if debug and source == '':
         print ("Basic code test - done")
@@ -1470,7 +1475,7 @@ def main(argv):
 
 
     # Read files, anaylse them and write to IMAGCDF
-    def ConvertData(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], debug=False):
+    def ConvertData(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], testobslist=[], debug=False):
         """
         DESCRIPTION
             method to perfom data conversion and call the check methods
@@ -1479,6 +1484,7 @@ def main(argv):
             logdict (dictionary) : external, contains logging information for all analyszed data sets to be send to the IMBOT manager
             reportdict (dictionary) : internal, containes analysis reports for observatories
             readdict (dictionary) : contains a dictionary with parameters for a single observatory
+            testobslist = ['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
 
             Structure of reportdict:
                 'OBSCODE'    :  { ... }  -> readdict
@@ -1490,6 +1496,7 @@ def main(argv):
               Sourcepath                :      obtained quality level
               Readability test file     :      test file
               Readability               :      only good if "OK"
+
         """
         reportdict = {}
         for element in pathsdict:
@@ -1639,7 +1646,7 @@ def main(argv):
                 print ("MAILTEXT for {} to be send to {}:\n{}".format(para.get('obscode'), email, mailtext))
 
                 # DEFINE A LIST OF OBERVATORIES FOR A TEST RUN - ONLY THESE OBSERVATORIES WILL GET NOTIFICATIONS
-                testobslist = ['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
+                #testobslist = ['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
                 # Send out emails
                 # -----------
                 if email:
@@ -1654,7 +1661,7 @@ def main(argv):
                     maildict['From'] = 'roman_leonhardt@web.de'
                     print ("Joined Mails", email)
                     print ("-> currently only used for selected. Other mails only send to leon")
-                    if para.get('obscode').upper() in testobslist:
+                    if para.get('obscode').upper() in testobslist: #or not testobslist
                         maildict['To'] = email
                     else:
                         maildict['To'] = 'ro.leonhardt@googlemail.com'
@@ -1717,7 +1724,7 @@ def main(argv):
 
     print ("Running conversion and data check:")
     # 3. Convert Data includes validity tests, report creation and exporting of data
-    fullreport = ConvertData(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,debug=debug)
+    fullreport = ConvertData(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,debug=debug)
 
     # 4. if successfully analyzed create new memory
 

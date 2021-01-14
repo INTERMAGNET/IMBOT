@@ -54,6 +54,9 @@ YEAR=2019
 #QUIETDAYLIST='2018-01-03,2018-01-06,2018-01-07,2018-01-11,2018-01-18,2018-02-11,2018-02-14,2018-04-16,2018-05-21,2018-09-20,2018-10-17,2018-10-18,2018-10-19,2018-10-20,2018-10-29,2018-11-17,2018-11-18,2018-11-22,2018-11-26,2018-11-28,2018-12-13,2018-12-14,2018-12-15,2018-12-16,2018-12-22,2018-12-23'
 QUIETDAYLIST='2019-01-02,2019-01-12,2019-01-13,2019-01-28,2019-01-29,2019-01-30,2019-02-19,2019-03-11,2019-03-22,2019-03-23,2019-03-24,2019-06-11,2019-10-13,2019-10-23,2019-11-02,2019-11-18,2019-11-19,2019-11-20,2019-11-26,2019-12-02,2019-12-03,2019-12-05,2019-12-07,2019-12-08,2019-12-14,2019-12-24,2019-12-27,2019-12-28,2019-12-29'
 
+OBSTESTLIST="WIC,BOX,DLT,IPM,KOU,LZH,MBO,PHU,PPT,TAM,CLF"
+
+RSYNC=/usr/bin/rsync
 PYTHON=/usr/bin/python3
 APP=/home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/secondanalysis.py
 NOTE=/home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/telegramnote.py
@@ -84,7 +87,7 @@ if grep -qs "$MOUNTSEC" /proc/mounts && grep -qs "$MOUNTMIN" /proc/mounts; then
   # Please uncomment using # if you are not using Telegram notifications
   $PYTHON $NOTE -t /etc/martas/telegram.cfg -n "${MSG}" -l "IMBOTmaster"
   # ANALYSE
-  $PYTHON $APP -s $SOURCEDIR -d $DESTINATION -t $TMPDIR -i $MINDIR -m $MEMORY -n /etc/martas/telegram.cfg -q $QUIETDAYLIST
+  $PYTHON $APP -s $SOURCEDIR -d $DESTINATION -t $TMPDIR -i $MINDIR -m $MEMORY -n /etc/martas/telegram.cfg -q $QUIETDAYLIST -o $OBSTESTLIST
   echo "Analysis performed"
   # UMOUNT DIRECTORIES
   umount $MOUNTMIN
@@ -97,4 +100,23 @@ else
   $PYTHON $NOTE -t /etc/martas/telegram.cfg -n "${MSG}" -l "IMBOTmaster"
 fi
 
+# Mount the remote destination directory and syncronize all subdirectories within the test list
+MOUNTLEVEL=/mnt/level/${YEAR}
+mkdir -p $MOUNTLEVEL
+
+LEVELDIR="${MOUNTLVEL}"/level
+LOCALSOURCE="${DESTINATION}"/level
+
+# MOUNT LEVEL DIRECTORY
+curlftpfs -o user=$GINLEVEL,allow_other $GINLEVELIP $MOUNTLEVEL
+
+# Only sync data from selecetd subdirectories  (rsync -n is a "try" testrun)
+for i in $(echo $OBSTESTLIST | sed "s/,/ /g")
+do
+   INCLUDE="${i}/***"
+   $RSYNC -avzn --list-only --include $INCLUDE --exclude '*' $LOCALSOURCE $LEVELDIR
+done
+
+# IF OBSTEST is finshed then just remove the OBSTESTLIST and the for-loop -> a remaining line is
+# $RSYNC -avz $LOCALSOURCE $LEVELDIR
 
