@@ -2,6 +2,25 @@
 # An automatic data checker for one second data.
 -------------------------------------------------
 
+####<1.0.1>, <2021-01-14> --
+
+1.0.1 general:
+    + version 1.0.1 
+    + Python3 compatible
+    + requires MagPy >= 0.9.9
+
+1.0.1 fixed:
+    + Typos in email notifications and text
+    + fixed mailing errors when sending notifications to observers
+
+1.0.1 additions:
+    + activated email and telegram notifcations
+    + added testing optinons (a list of Observatory codes can be provided) 
+       -> only these observatories will get notifications, only these data sets are uploaded to GIN level
+    + alternative mail lists working
+    + bash script supports upload to GIN (level structure is implemented since 2021-01-14)
+
+
 ####<1.0.0>, <2020-09-29> --
 
 1.0.0 general:
