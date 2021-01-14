@@ -100,23 +100,38 @@ else
   $PYTHON $NOTE -t /etc/martas/telegram.cfg -n "${MSG}" -l "IMBOTmaster"
 fi
 
-# Mount the remote destination directory and syncronize all subdirectories within the test list
-MOUNTLEVEL=/mnt/level/${YEAR}
-mkdir -p $MOUNTLEVEL
+#chown -R leon:leon /media/leon/Images/DataCheck
 
-LEVELDIR="${MOUNTLVEL}"/level
+# Mount the remote destination directory and syncronize all subdirectories within the test list
+MOUNTLEVEL=/mnt/level
+LEVELDIR="${MOUNTLEVEL}"/"${YEAR}"
 LOCALSOURCE="${DESTINATION}"/level
 
 # MOUNT LEVEL DIRECTORY
 curlftpfs -o user=$GINLEVEL,allow_other $GINLEVELIP $MOUNTLEVEL
 
+# Eventually create LEVEL DIRECTORY
+mkdir -p $LEVELDIR
+
 # Only sync data from selecetd subdirectories  (rsync -n is a "try" testrun)
-for i in $(echo $OBSTESTLIST | sed "s/,/ /g")
-do
-   INCLUDE="${i}/***"
-   $RSYNC -avzn --list-only --include $INCLUDE --exclude '*' $LOCALSOURCE $LEVELDIR
-done
 
 # IF OBSTEST is finshed then just remove the OBSTESTLIST and the for-loop -> a remaining line is
 # $RSYNC -avz $LOCALSOURCE $LEVELDIR
+
+if grep -qs "$MOUNTLEVEL" /proc/mounts; then
+  for i in $(echo $OBSTESTLIST | sed "s/,/ /g")
+  do
+    INCLUDE="${i}/***"
+    $RSYNC -avzn --list-only --include $INCLUDE --exclude '*' $LOCALSOURCE $LEVELDIR
+  done
+  umount $MOUNTLEVEL
+  echo "GIN level unmounted"
+else
+  MSG="GIN level directories could not be mounted."
+  echo $MSG
+  # Please uncomment using # if you are not using Telegram notifications
+  $PYTHON $NOTE -t /etc/martas/telegram.cfg -n "${MSG}" -l "IMBOTupload"
+fi
+
+
 
