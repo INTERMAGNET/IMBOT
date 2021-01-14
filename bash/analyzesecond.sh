@@ -116,13 +116,14 @@ mkdir -p $LEVELDIR
 # Only sync data from selecetd subdirectories  (rsync -n is a "try" testrun)
 
 # IF OBSTEST is finshed then just remove the OBSTESTLIST and the for-loop -> a remaining line is
-# $RSYNC -avz $LOCALSOURCE $LEVELDIR
+# $RSYNC -avz -T "/tmp/" --no-perms --no-owner --no-group $LOCALSOURCE $LEVELDIR
 
 if grep -qs "$MOUNTLEVEL" /proc/mounts; then
   for i in $(echo $OBSTESTLIST | sed "s/,/ /g")
   do
-    INCLUDE="${i}/***"
-    $RSYNC -avzn --list-only --include $INCLUDE --exclude '*' $LOCALSOURCE $LEVELDIR
+    IN="${LOCALSOURCE}"/"${i}/*"
+    OUT="${LEVELDIR}"/"${i}"
+    $RSYNC -avz -T "/tmp/" --no-perms --no-owner --no-group $IN $OUT
   done
   umount $MOUNTLEVEL
   echo "GIN level unmounted"
