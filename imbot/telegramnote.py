@@ -1,8 +1,3 @@
-local = True
-if local:
-    import sys
-    sys.path.insert(1,'/home/leon/Software/magpy/')
-
 from magpy.stream import *
 
 from martas import martaslog as ml
@@ -64,8 +59,9 @@ def main(argv):
     if notification == '':
         sys.exit()
 
-    note[name] = notification 
+    note[name] = notification
 
+    print ("Selected logging path is ", logpath)
     martaslog = ml(logfile=logpath,receiver='telegram')
     martaslog.telegram['config'] = tele
     martaslog.msg(note)

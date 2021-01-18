@@ -1,10 +1,26 @@
 #!/bin/bash
 PYTHON=/usr/bin/python3
-TELEGRAM=/home/leon/Software/IMBOT/imbot/telegramnote.py
+TELEGRAM=/home/pi/Software/IMBOT/imbot/telegramnote.py
 
-cd /home/leon/Software/IMBOT/imbot
+cd /home/pi/Software/IMBOT/imbot
 
 echo "CHECKING LOGFILES"
-theinfo=$(grep -rnw '/home/leon/IMBOT/' -e 'SUCCESSFULLY' | awk -F: '{print $1}' | awk -F/ '{print $NF}' | grep 'last')
-echo "logfile contains " $theinfo
-$PYTHON $TELEGRAM -t /etc/martas/telegram.cfg -n $theinfo -l IMBOTlogfile -p /var/log/magpy/imbot_status1.log
+thefirstinfo=$(grep -rnw '/home/pi/IMBOT/' -e 'SUCCESSFULLY' | awk -F: '{print $1}' | awk -F/ '{print $NF}' | grep '2018')
+echo "logfile contains " $thefirstinfo
+if [ -z "$thefirstinfo" ]
+then
+      VAL="FAILED"
+else
+      VAL="SUCCESS"
+fi
+$PYTHON $TELEGRAM -t /etc/martas/telegram.cfg -l imbotlogfile -p /var/log/magpy/imbot_status1.log -n $VAL
+
+thesecondinfo=$(grep -rnw '/home/pi/IMBOT/' -e 'SUCCESSFULLY' | awk -F: '{print $1}' | awk -F/ '{print $NF}' | grep '2019')
+if [ -z "$thesecondinfo" ]
+then
+      SVAL="FAILED"
+else
+      SVAL="SUCCESS"
+fi
+echo "logfile contains " $thesecondinfo
+$PYTHON $TELEGRAM -t /etc/martas/telegram.cfg -l imbot2019logfile -p /var/log/magpy/imbot_status2.log -n $SVAL
