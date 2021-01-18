@@ -87,7 +87,7 @@ if grep -qs "$MOUNTSEC" /proc/mounts && grep -qs "$MOUNTMIN" /proc/mounts; then
   # Please uncomment using # if you are not using Telegram notifications
   $PYTHON $NOTE -t /etc/martas/telegram.cfg -n "${MSG}" -l "IMBOTmaster"
   # ANALYSE
-  $PYTHON $APP -s $SOURCEDIR -d $DESTINATION -t $TMPDIR -i $MINDIR -m $MEMORY -n /etc/martas/telegram.cfg -q $QUIETDAYLIST -o $OBSTESTLIST
+  $PYTHON $APP -s $SOURCEDIR -d $DESTINATION -t $TMPDIR -i $MINDIR -m $MEMORY -n /etc/martas/telegram.cfg -q $QUIETDAYLIST -p $OBSTESTLIST
   echo "Analysis performed"
   # UMOUNT DIRECTORIES
   umount $MOUNTMIN

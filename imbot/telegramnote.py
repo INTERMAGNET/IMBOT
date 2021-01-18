@@ -58,7 +58,7 @@ def main(argv):
             tele = os.path.abspath(arg)
         elif opt in ("-l", "--logname"):
             name = arg
-        elif opt in ("-t", "--telegramcfg"):
+        elif opt in ("-p", "--logpath"):
             logpath = os.path.abspath(arg)
 
     if notification == '':

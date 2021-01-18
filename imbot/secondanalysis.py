@@ -374,60 +374,70 @@ def ReadMonth(sourcepath, starttime, endtime, logdict={}, updateinfo={}, optiona
         days = int(date2num(et) - date2num(st))
         expectedcount = days*24.*3600.
         #print ("Exporting data from {} to {}".format(st,et))
-        data = read(os.path.join(sourcepath,'*'),starttime=starttime, endtime=endtime)
+        try:
+            data = read(os.path.join(sourcepath,'*'),starttime=starttime, endtime=endtime)
+        except:
+            data = DataStream()
         data = data.trim(starttime=st,endtime=et)
-        cntbefore = data.length()[0]
-        data = data.get_gaps()
-        cntafter = data.length()[0]
-        st, et = data._find_t_limits()
-        effectivedays = int(date2num(et) - date2num(st))+1
-        ### Try to load any additional meta information provided in file meta_obscode.txt
-        newmeta = ReadMetaData(sourcepath)
-        if len(newmeta) > 0:
-            print ("Observatory provided additional meta information: {}".format(newmeta))
-            for key in newmeta:
-               print ("Appending new meta info")
-               data.header[key] = newmeta[key]
+        if data.length()[0] > 1:
+            cntbefore = data.length()[0]
+            data = data.get_gaps()
+            cntafter = data.length()[0]
+            st, et = data._find_t_limits()
+            effectivedays = int(date2num(et) - date2num(st))+1
+            ### Try to load any additional meta information provided in file meta_obscode.txt
+            newmeta = ReadMetaData(sourcepath)
+            if len(newmeta) > 0:
+                print ("Observatory provided additional meta information: {}".format(newmeta))
+                for key in newmeta:
+                   print ("Appending new meta info")
+                   data.header[key] = newmeta[key]
 
-        #print ("Datalimits from {} to {}".format(st,et))
-        logdict['Datalimits'] = [st,et]
-        logdict['N'] = data.length()[0]
-        logdict['Leap second update'] = data.header.get('DataLeapSecondUpdated')
-        logdict['Filled gaps'] = cntafter-cntbefore
-        logdict['Difference to expected amount'] = expectedcount-cntafter
-        logdict['Level'] = 2
-        sr = data.samplingrate()
-        logdict['Samplingrate'] = '{} sec'.format(sr)
-        #print ("Expected amount", expectedcount)
-        #print ("Expected", effectivedays, cntafter)
-        if not expectedcount-cntafter == 0:
-            # Allow a confirmation in newmeta to indicate that missing data is not available and thus does not need to be considered for monthly file generation - but keep issue
-            # Example BDV2016 - the submitted files apparently repeat the same dates each month...
-            if newmeta.get('MissingData','') in ['confirmed','Confirmed','confirm']:
-                logdict['Missing data'] = 'confirmed as missing by submitter'
-            else:
-                logdict['Level'] = 1
-                issues['MissingData'] = 'Amount of data points {} does not correspond to the expected amount {}'.format(cntafter,expectedcount)
-        if (effectivedays*24*3600) < cntafter:
-            # apparently more data than expected for coverage (duplicates)
-            logdict['Level'] = 0
-            issues['Data coverage'] = 'Check data files for duplicates and correct coverage'
-        if not sr == 1:
-            logdict['Level'] = 0
-            issues['Samplingrate'] = 'Found sampling rate of {} sec, expected is 1 sec'.format(sr)
-        for head in IMAGCDFMETA:
-            if not head == 'DataReferences': # TODO check that
-                value = data.header.get(head,'')
-                if value == '':
-                    metainfo[head] = 'missing'
-                    if not head in optionalheads:
-                        issues[head] = 'header {} missing'.format(head.replace("Data","").replace("Sensor","").replace("Station","") )
-                        if not logdict.get('Level') == 0:
-                            logdict['Level'] = 1
-                    else:
-                        improvements[head] = 'provide information on {}'.format(head.replace("Data","").replace("Sensor","").replace("Station","") )
+            #print ("Datalimits from {} to {}".format(st,et))
+            logdict['Datalimits'] = [st,et]
+            logdict['N'] = data.length()[0]
+            logdict['Leap second update'] = data.header.get('DataLeapSecondUpdated')
+            logdict['Filled gaps'] = cntafter-cntbefore
+            logdict['Difference to expected amount'] = expectedcount-cntafter
+            logdict['Level'] = 2
+            sr = data.samplingrate()
+            logdict['Samplingrate'] = '{} sec'.format(sr)
+            #print ("Expected amount", expectedcount)
+            #print ("Expected", effectivedays, cntafter)
+            if not expectedcount-cntafter == 0:
+                # Allow a confirmation in newmeta to indicate that missing data is not available and thus does not need to be considered for monthly file generation - but keep issue
+                # Example BDV2016 - the submitted files apparently repeat the same dates each month...
+                if newmeta.get('MissingData','') in ['confirmed','Confirmed','confirm']:
+                    logdict['Missing data'] = 'confirmed as missing by submitter'
                 else:
-                    metainfo[head] = value
+                    logdict['Level'] = 1
+                    issues['MissingData'] = 'Amount of data points {} does not correspond to the expected amount {}'.format(cntafter,expectedcount)
+            if (effectivedays*24*3600) < cntafter:
+                # apparently more data than expected for coverage (duplicates)
+                logdict['Level'] = 0
+                issues['Data coverage'] = 'Check data files for duplicates and correct coverage'
+            if not sr == 1:
+                logdict['Level'] = 0
+                issues['Samplingrate'] = 'Found sampling rate of {} sec, expected is 1 sec'.format(sr)
+            for head in IMAGCDFMETA:
+                if not head == 'DataReferences': # TODO check that
+                    value = data.header.get(head,'')
+                    if value == '':
+                        metainfo[head] = 'missing'
+                        if not head in optionalheads:
+                            issues[head] = 'header {} missing'.format(head.replace("Data","").replace("Sensor","").replace("Station","") )
+                            if not logdict.get('Level') == 0:
+                                logdict['Level'] = 1
+                        else:
+                            improvements[head] = 'provide information on {}'.format(head.replace("Data","").replace("Sensor","").replace("Station","") )
+                    else:
+                        metainfo[head] = value
+        else:
+            #if newmeta.get('MissingData','') in ['confirmed','Confirmed','confirm']:
+            #    logdict['Missing data'] = 'confirmed as missing by submitter'
+            #else:
+            logdict['Level'] = 0
+            issues['Data coverage'] = 'Check data files - data files missing?'
 
         logdict['Header'] = metainfo
         logdict['Issues'] = issues
@@ -701,9 +711,15 @@ def CheckDiffs2Minute(data, logdict, minutesource='', obscode='',daterange=[]):
             xd, xdst = diff.mean('x',std=True)
             yd, ydst = diff.mean('y',std=True)
             zd, zdst = diff.mean('z',std=True)
-            xa = diff.amplitude('x')
-            ya = diff.amplitude('y')
-            za = diff.amplitude('z')
+            try:
+               xa = diff.amplitude('x')
+               ya = diff.amplitude('y')
+               za = diff.amplitude('z')
+            except:
+               print ("Problem determining amplitudes...")
+               xa = 0.00
+               ya = 0.00
+               za = 0.00
             print ("  -> amplitudes determined")
             mindatadict['mean difference - x component'] = "{:.3} nT".format(xd)
             mindatadict['mean difference - y component'] = "{:.3} nT".format(yd)
@@ -930,6 +946,10 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
                 issuedict = reportdict[month].get("Issues")
                 improvedict = reportdict[month].get("Improvements")
                 warningdict = reportdict[month].get("Warnings")
+                if not improvedict:
+                    improvedict = {}
+                if not warningdict:
+                    warningdict = {}
                 print ("   Warning messages for month {}: {}".format(month, warningdict))
                 headerdict = reportdict[month].get("Header")
                 for issue in issuedict:
@@ -1431,6 +1451,7 @@ def main(argv):
             quietdaylist = arg.split(',')
         elif opt in ("-o", "--observatories"):
             obslist = arg.replace(" ","").split(',')
+            print (" OBSLIST provided: dealing only with {}".format(obslist))
         elif opt in ("-x", "--exclude"):
             excludeobs = arg.replace(" ","").split(',')
         elif opt in ("-n", "--notify"):
@@ -1756,6 +1777,8 @@ def main(argv):
         martaslog = ml(logfile=telelogpath,receiver='telegram')
         martaslog.telegram['config'] = tele
         martaslog.msg(notification)
+
+    print ("-> ONESECOND DATA ANALYSIS SUCCESSFULLY FINISHED")
 
 
 if __name__ == "__main__":
