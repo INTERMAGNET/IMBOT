@@ -604,12 +604,15 @@ def ExtractEMails(path):
                             "{|}~-]+)*(@)(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(\.|"
                             "\sdot\s))+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)"))
 
-        fulltext = ''
-        if os.path.isfile(path):
-            with open(path, 'r', encoding="latin-1") as infile:
-                fulltext = infile.read().lower()
+        try:
+            fulltext = ''
+            if os.path.isfile(path):
+                with open(path, 'r', encoding="latin-1") as infile:
+                    fulltext = infile.read().lower()
 
-        mailaddresslist = [email[0] for email in re.findall(regex, fulltext) if not email[0].startswith('//')]
+            mailaddresslist = [email[0] for email in re.findall(regex, fulltext) if not email[0].startswith('//')]
+        except:
+            print (" -> Could not extract mails from {} - permission problem?".format(path))
 
         return mailaddresslist
 
