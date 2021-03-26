@@ -1389,7 +1389,7 @@ def main(argv):
     logpath = '/var/log/magpy'
     mailcfg = '/etc/martas'
     quietdaylist = ['2016-01-25','2016-01-29','2016-02-22','2016-03-13','2016-04-01','2016-08-28','2016-10-21','2016-11-05','2016-11-17','2016-11-19','2016-11-30','2016-12-01','2016-12-03','2016-12-04']
-    manager = ['ro.leonhardt@googlemail.com']
+    manager = ['ro.leonhardt@googlemail.com','jreda@igf.edu.pl','hom@ngs.ru','tero.raita@sgo.fi','heumez@ipgp.fr','Andrew.Lewis@ga.gov.au']
     memory='/tmp/secondanalysis_memory.json'
     tmpdir="/tmp"
     testobslist=['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
@@ -1467,6 +1467,7 @@ def main(argv):
             testobslist = arg.split(',')
         elif opt in ("-D", "--debug"):
             debug = True
+
 
     if debug and source == '':
         print ("Basic code test - done")
@@ -1648,10 +1649,8 @@ def main(argv):
                 if alternativeemails and len(alternativeemails) > 0:
                     emails = alternativeemails
 
-                # Obtain manager list
-                manager = GetMailFromList('manager', os.path.join(pathemails,"mailinglist.cfg"))
+                #manager = Get(para.get('obscode'), os.path.join(pathemails,"mailinglist.cfg"))
                 managermail = ",".join(manager)  # used for mails not in testobslist
-                print ("Obtained managers:", manager, managermail)
 
                 #print ("Mailing list looks like:", emails)
                 if emails:
