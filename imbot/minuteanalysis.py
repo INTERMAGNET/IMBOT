@@ -213,15 +213,18 @@ def GetUploadMinuteInformation(sourcepath, checkrange = 2, obslist = [],excludeo
                         print (extlist)
                         extlist = [el for el in extlist if not el in ['.txt', '.md']]
                         amount = len(files)
-                        typ = max(extlist,key=extlist.count)
-                        if typ in ['.zip', '.gz', '.tgz', '.tar.gz', '.tar', '.cdf', '.sec']:
-                            parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode}
-                            storage[root] = parameter
-                        elif typ in ['.min', '.bin', '.{}'.format(obscode.lower()), '.blv', '.BIN', '.BLV', '.{}'.format(obscode.upper())]:
-                            parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode}
-                            storage[root] = parameter
+                        if len(extlist) > 0:
+                            typ = max(extlist,key=extlist.count)
+                            if typ in ['.zip', '.gz', '.tgz', '.tar.gz', '.tar', '.cdf', '.sec']:
+                                parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode}
+                                storage[root] = parameter
+                            elif typ in ['.min', '.bin', '.{}'.format(obscode.lower()), '.blv', '.BIN', '.BLV', '.{}'.format(obscode.upper())]:
+                                parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode}
+                                storage[root] = parameter
+                            else:
+                                logdict[root] = "Found unexpected data type '{}'".format(typ)
                         else:
-                            logdict[root] = "Found unexpected data type '{}'".format(typ)
+                            logdict[root] = "Directory existing - but no files found"
                     else:
                         logdict[root] = "Uploaded recently - eventually not finished"
               elif level > 1:
@@ -1417,7 +1420,6 @@ def DOS_check1min(sourcepath, obscode, year=2020, winepath='/home/leon/.wine/dri
     checklist = logdict.get('CheckList',[])
     checklist.append('check1min (dos) performed')
     logdict['CheckList'] = checklist
-    logdict['Level'] = 1
 
     return logdict
 
@@ -1810,23 +1812,26 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 # Send out emails
                 # -----------
                 if email and mailcfg:
-                    print ("Using mail configuration in ", mailcfg)
+                    if debug:
+                        print ("Using mail configuration in ", mailcfg)
                     maildict = ReadMetaData(mailcfg, filename="mail.cfg")
                     attachfilelist = loggingdict.get('Attachment')
-                    print ("ATTACHMENT looks like:", attachfilelist)
-                    print (" -> for file sending", ",".join(attachfilelist))
+                    if debug:
+                        print ("ATTACHMENT looks like:", attachfilelist)
+                        print (" -> for file sending", ",".join(attachfilelist))
                     maildict['Attach'] = ",".join(attachfilelist)
                     maildict['Text'] = mailtext
                     maildict['Subject'] = 'IMBOT one-minute analysis for {}'.format(para.get('obscode'))
                     maildict['From'] = 'roman_leonhardt@web.de'
-                    print ("Joined Mails", email)
-                    print ("-> currently only used for selected. Other mails only send to leon")
+                    if debug:
+                        print ("Joined Mails", email)
+                        print ("-> currently only used for selected. Other mails only send to leon")
                     if para.get('obscode').upper() in testobslist: #or not testobslist
                         print (" Selected observatory is part of a Testing list")
                         maildict['To'] = email
                     else:
                         maildict['To'] = managermail
-                    print ("MAILDICT", maildict)
+                    #print ("MAILDICT", maildict)
                     sm(maildict)
                 else:
                     print ("Could not find mailconfiguration - skipping mail transfer")
@@ -1873,7 +1878,7 @@ def main(argv):
     pathemails = ''
     tele = ''
     logpath = '/var/log/magpy'
-    mailcfg = '/etc/martas/mail.cfg'
+    mailcfg = '/etc/martas'
     quietdaylist = ['2016-01-25','2016-01-29','2016-02-22','2016-03-13','2016-04-01','2016-08-28','2016-10-21','2016-11-05','2016-11-17','2016-11-19','2016-11-30','2016-12-01','2016-12-03','2016-12-04']
     manager = ['ro.leonhardt@googlemail.com','jreda@igf.edu.pl','hom@ngs.ru','tero.raita@sgo.fi','heumez@ipgp.fr','Andrew.Lewis@ga.gov.au']
     memory='/tmp/secondanalysis_memory.json'
@@ -2011,6 +2016,11 @@ def main(argv):
     fullreport = CheckOneMinute(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,pathemails=pathemails,mailcfg=mailcfg, debug=debug)
 
     # 4. send a report to the IMBOT manager containing failed and successful analysis
+
+    # I need an analysis report and a "program" runtime log
+    print ("Results", logdict)
+    print ("Fullreport", fullreport)
+
 
     print ("INFORMATION for BOT MANAGER")
     print ("---------------------------")
