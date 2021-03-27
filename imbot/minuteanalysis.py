@@ -166,6 +166,70 @@ def GetUploadInformation(sourcepath, checkrange = 2, obslist = [],excludeobs=[])
         return storage, logdict
 
 
+def GetUploadMinuteInformation(sourcepath, checkrange = 2, obslist = [],excludeobs=[]):
+        """
+        DESCRIPTION:
+            Method will check directory structure of the STEP1 one second directory
+            It will extract directory, amount of files, filetype, and last modification date
+        APPLICTAION:
+            to check step 1 one second directory
+            Suggested technique for updating previously submitted and updated step10,level1, and level2 data:
+            Data passing all level0 clearance is moved to a new path (raw: step1, level1-3: level)
+            --- extract level information from directory:
+            --- thus add a file called " levelx.txt" with the highest reached level after each treatment, add a asterix for data awaiting a check
+            This way, the same method can also be applied to the level directory
+        """
+        print ("Running - getting upload information")
+        print (obslist)
+        storage = {}
+        logdict = {}
+        for root, dirs, files in os.walk(sourcepath):
+          level = root.replace(sourcepath, '').count(os.sep)
+          if (len(obslist) > 0 and root.replace(sourcepath, '')[1:4] in obslist) or len(obslist) == 0:
+            if (len(excludeobs) > 0 and not root.replace(sourcepath, '')[1:4] in excludeobs) or len(excludeobs) == 0:
+              if level == 1:
+                print ("Found directory:", root)
+                # append root, and ctime of youngest file in directory
+                timelist = []
+                extlist = []
+                obscode = root.replace(sourcepath, '')[1:4]
+                for f in files:
+                    try:
+                        stat=os.stat(os.path.join(root, f))
+                        mtime=stat.st_mtime
+                        ctime=stat.st_ctime
+                        ext = os.path.splitext(f)[1]
+                        timelist.append(mtime)
+                        extlist.append(ext)
+                    except:
+                        logdict[root] = "Failed to extract mtimes"
+                if len(timelist) > 0:
+                    youngest = max(timelist)
+                    print (datetime.utcfromtimestamp(youngest), datetime.utcnow()-timedelta(hours=checkrange))
+                    # only if latest file is at least "checkrange" hours old
+                    if datetime.utcfromtimestamp(youngest) < datetime.utcnow()-timedelta(hours=checkrange):
+                        # check file extensions ... and amount of files (zipped, cdf, sec)
+                        # firstly remove txt, par and md from list (meta.txt contain updated parameters)
+                        print (extlist)
+                        extlist = [el for el in extlist if not el in ['.txt', '.md']]
+                        amount = len(files)
+                        typ = max(extlist,key=extlist.count)
+                        if typ in ['.zip', '.gz', '.tgz', '.tar.gz', '.tar', '.cdf', '.sec']:
+                            parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode}
+                            storage[root] = parameter
+                        elif typ in ['.min', '.bin', '.{}'.format(obscode.lower()), '.blv', '.BIN', '.BLV', '.{}'.format(obscode.upper())]:
+                            parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode}
+                            storage[root] = parameter
+                        else:
+                            logdict[root] = "Found unexpected data type '{}'".format(typ)
+                    else:
+                        logdict[root] = "Uploaded recently - eventually not finished"
+              elif level > 1:
+                logdict[root] = "Found subdirectories - ignoring this folder"
+
+        return storage, logdict
+
+
 def CopyTemporary(pathsdict, tmpdir="/tmp", logdict={}):
         """
         DESCRIPTION:
@@ -1276,19 +1340,24 @@ def GetMailFromList(obscode, path="/path/to/mailinglist.cfg"):
         return maillist
 
 
-def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max Mustermann"):
+def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max Mustermann"):
 
-        maintext =  "Dear data submitter,\n\nyou receive the following information as your e-mail address is connected to submissions of geomagnetic data products from {} {} observatory.\nYour one-second data submission from {} has been automatically evaluated by IMBOT, an automatic data checker of INTERMAGNET.\n\nThe evaluation process resulted in\n\n".format(stationname, obscode, year)
+        maintext =  "Dear data submitter,\n\nyou receive the following information as your e-mail address is connected to submissions of geomagnetic data products from {} observatory.\nYour one-minute data submission for {} has been automatically evaluated by IMBOT, an automatic data checker of INTERMAGNET.\n\nThe evaluation process resulted in\n\n".format(obscode, year)
 
 
-        maintext += "LEVEL {}\n\n".format(level)
+        maintext += "LEVEL {}".format(level)
+
+        if int(level) == 0:
+            maintext += "    ISSUES to be resolved\n\n"
+        else:
+            maintext += "    READY for manual data checking\n\n"
 
         # TODO to be removed
-        maintext += "!! Please note: this is just a preliminary test of an automatc evaluation routine. The following text is fictional, ratings are NOT related to any decision of INTERMAGNET. Text and reports are suggestions to be reviewed by the INTERMAGNET data commitee. !!\n\n"
+        maintext += "!! Please note: this is just a preliminary test of an automatic evaluation routine. The following text is fictional, ratings are NOT related to any decision of INTERMAGNET. Text and reports are suggestions to be reviewed by the INTERMAGNET data commitee. !!\n\n"
 
-        level0 = "Your data did not pass the automatic reading and conversion test. Please update your data submission.\nPlease read the attached report and instructions before resubmission.\n\n" 
-        level1 = "Your data has provisionally been accepted by INTERMAGNET. Congratulations!\n\nIn order to continue the evaluation process some issues need to be clarified. Please read the attached report and instructions.\n\n"
-        level2 = "Your data has provisionally been accepted by INTERMAGNET. Congratulations!\n\nYour data fulfills all requirements for a final review. A level 2 data product is already an excellent source for high resolution magnetic information. Your data set has been assigned to an INTERMAGNET data checker for final evaluation regarding data quality.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all check on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
+        level0 = "Your data did not pass the automatic evaluation test. Please update your data submission.\nDetails can be found in the attached report. Please update your submission accordingly and perform a data check with checking tools provided by INTERMAGNET (link) before resubmission of your data set. If you need help please contact {}\n\n".format(nameofdatachecker)
+        level1 = "Congratulations! A basic data analysis indicates that your submission is ready for final checking by IM officers. So far all tests have been perfomed automatically. Please check the attached report for details.\n\nYour data set has been assigned to an INTERMAGNET data checker for evaluation.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all checks on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
+        level2 = "Congratulations!\n\nYour data fulfills all requirements for a final review. A level 2 data product is already an excellent source for high resolution magnetic information. Your data set has been assigned to an INTERMAGNET data checker for final evaluation regarding data quality.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all check on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
 
         if int(level) == 0:
             maintext += level0
@@ -1304,80 +1373,497 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
         if int(level) < 2:
             instructionstext = """
     -----------------------------------------------------------------------------------
-    Instructions to update files and meta information for re-evaluation of your data:
+    Important Links:
 
-    1. Do NOT edit any file in the submitting directories as long as you are NOT ready to submit a revised version
+    check1min
 
-    2. Check the report you received by mail for issues and suggested improvements
-
-         The report is attached to this mail and can also be found within the year/OBSCODE directory of the GIN.
-         The report is a text file in markdown language. You can read it in any text editor
-         or you might choose a special markdown editor (e.g. https://dillinger.io/)  
-
-    2.1. The report is titled "level0_underreview"
-
-         There are general problems with file structure, data files, or
-         readability of your files. Eventually a file got corrupted during upload. Please 
-         check the submitted files and convert them either to IAGA-2002 and or IMAGCDF.
-         Data which can be read by MagPy can usually also be analyzed. Please upload 
-         corrected files into the step1 directory of the GIN.
-
-    2.2. The report is titeled "level1_underreview"
-
-         Your data is provisionally accepted by INTERMAGNET.
-         There are, however, minor issues. Mostly some meta information, which is required for 
-         INTERMAGNET archiving is missing. Please follow the instructions in section 3 of these 
-         instructions on how to obtain a level 2 clearance.
-
-    2.3. The report is titled "level2_underreview"
-
-         Your data set is accepted by INTERMAGNET and meets the criteria for final level 3 evaluation. 
-         Nevertheless, please check the report for suggested improvements and follow the steps 
-         outlined in section 3 if you want to consider them for the final data product (not obligatory). 
-         A reviewer will automatically be assigned, who will manually check your submission. You
-         will get a detailed report and contact information for the referee. Please note:
-         Data checkers do all reviews and evaluation beside their usual duites. Depending on their workload
-         it might need a while.
-         Usually, a final data check summary is obtained within three months after level 2 submission. 
-
-         A level 3 evaluation contains a data quality check of your one second data product.
-         Failing a level 3 evaluation has no consequence for your INTERMAGNET status which is 
-         related to one-minute data. Anyway, please analyze any upcoming issues carefully:
-         it might be useful to check your data preparation
-         routines and might trigger improvements of instrumentation, 
-         powering systems and, eventually, instruments location.
-
-    3. You are ready to perform updates to your submission
-
-    3.1 Prepare you updates locally and upload them altogether.
-
-    3.2 Upload new files and information sheets into the
-        step1 directory of the GIN.
-
-    3.3 For meta information updates:
-        Please use the "meta_OBSCODE.txt" template attached to this mail or download it 
-        from the GIN within directory year/"OBSCODE". 
-        Please add the requested meta data into this file.
-
-    3.4 For data file updates:
-        Upload the new/corrected files and replace/delete old files within
-        the step1 directory of teh GIN. 
-
-    3.5 Within 24 hours after you finished your uploads
-        an automatic (re)evaluation will be triggered.
-
-    4. Problems
-
-        If you have problems or questions please contact the IMBOT manager.
+    MagPy
                                """
             maintext += instructionstext.replace('OBSCODE',obscode)
 
         return maintext
 
+def DOS_check1min(sourcepath, obscode, year=2020, winepath='/home/leon/.wine/drive_c/',logdict={}, updateinfo={}, optionalheads=['StationWebInfo', 'DataTerms', 'DataReferences'], debug= False):
+    # requires wine
+
+    sleeptime = 10
+
+    src = sourcepath
+    dst = os.path.join(winepath,'daten',obscode)
+    # This creates a symbolic link on python in tmp directory
+    if os.path.isdir(dst):
+        os.unlink(dst)
+    os.symlink(src, dst)
+
+    curwd = os.getcwd()
+    os.chdir(winepath)
+
+    cmd = "wine start check1min.exe C:\\\\daten\\\\{} {} {} C:\\\\daten\\\\{}\\\\{}report{}.txt".format(obscode,obscode,year,obscode,obscode.lower(),year)
+    print (cmd)
+    import subprocess
+    import time
+
+    subprocess.call(cmd, shell=True)
+    #proc = subprocess.Popen(cmd, cwd=winepath)
+
+    os.chdir(curwd)
+    time.sleep(sleeptime) # wait a while to finish analysis
+    os.unlink(dst)
+
+
+    attach = logdict.get('Attachment',[])
+    attach.append(os.path.join(sourcepath,"{}report{}.txt".format(obscode.lower(),year)))
+    logdict['Attachment'] = attach
+    checklist = logdict.get('CheckList',[])
+    checklist.append('check1min (dos) performed')
+    logdict['CheckList'] = checklist
+    logdict['Level'] = 1
+
+    return logdict
+
+
+def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalheads=['StationWebInfo', 'DataTerms', 'DataReferences'], debug= False):
+    """
+    DESCRIPTION:
+        reading data and checking contents
+    """
+
+    issuelist = []
+
+    def most_frequent(List): 
+            return max(set(List), key = List.count) 
+
+    # get the pathname
+    def pathname(minutesource, obscode, typ='data'):
+            path = ''
+            readme = ''
+            rlst = []
+            ext = ".bin"
+            extlist = []
+            for root, dirs, files in os.walk(minutesource):
+                #print (dirs)
+                for dire in dirs:
+                    if dire.endswith(obscode) and not root.find('Meta') > 0:
+                        path = os.path.join(root,dire)
+                        rlst = glob.glob(os.path.join(path,'*eadme*'))
+                        rlst.extend(glob.glob(os.path.join(path,'README*')))
+                        if len(rlst) > 0:
+                            readme = rlst[0]
+                        extlist = [os.path.splitext(f)[1] for f in os.listdir(path)]
+                        #if len(rlst) > 0:
+                        ext = most_frequent(extlist)
+
+            #print ("Located minute data in ", path)
+            #print ("Located readme in ", readme)
+            #print ("Located main extension ", ext)
+
+            if path:
+                thepath = os.path.join(path, "*{}".format(ext))
+
+            if typ == 'readme' and readme and path:
+                return os.path.join(path,readme)
+            elif path:
+                return thepath
+
+            return ''
+
+    minpath = os.path.join(sourcepath,'..')
+    try:
+        mails = ExtractEMails(pathname(minpath,obscode,typ='readme'))
+        #print (mails)
+        logdict['Contact'] = mails
+    except:
+        issue = "Failed to extract an email address from README file"
+        issuelist.append(issue)
+
+    extension = 'BIN'
+    #======== Checking presence readme.imo yearmean.imo imoyyyy.blv =======
+    print ("======== Checking presence readme.imo yearmean.imo imoyyyy.blv =======")
+    try:
+        bincnt = len(glob.glob(os.path.join(sourcepath,"*.bin")))
+        if bincnt == 12:
+             extension = 'bin'
+        bincnt += len(glob.glob(os.path.join(sourcepath,"*.BIN")))
+        blvcnt = len(glob.glob(os.path.join(sourcepath,"*.blv")))
+        blvcnt += len(glob.glob(os.path.join(sourcepath,"*.BLV")))
+        addcnt = len(glob.glob(os.path.join(sourcepath,"*.{}".format(obscode.lower()))))
+        addcnt += len(glob.glob(os.path.join(sourcepath,"*.{}".format(obscode.upper()))))
+        #check yearmean and readme
+        print ("Result", bincnt, blvcnt, addcnt)
+        if bincnt == 12:
+            print ("   Requested binary files are present")
+        else:
+            issuelist.append("check binary files")
+            print ("   check presence of all requested binary files")
+            logdict['Level'] = 0
+        if blvcnt >= 1:
+            print ("   Requested files are present")
+        else:
+            issuelist.append("check presence of baseline data")
+            print ("   check baseline data")
+            logdict['Level'] = 0
+        if addcnt >= 2:
+            print ("   Yearmean and readme seem to be present")
+        else:
+            issuelist.append("check yearmean/readme")
+            print ("   check presence of yearmean /readme")
+            logdict['Level'] = 0
+    except:
+        issue = "problem when accessing data files"
+        issuelist.append(issue)
+        print ("   {}".format(issue))
+        logdict['Level'] = 0
+
+    #==============  Readability of files
+    try:
+        data = read(pathname(minpath,obscode))
+        logdict['AmountMin'] = data.length()[0]
+    except:
+        issuelist.append("binary data read problem")
+        logdict['Level'] = 0
+        logdict['Issues'] = issuelist
+        return logdict
+
+    #logdict['year'] = data.ndarray[0][5]
+
+    try:
+        print ("Updating year")
+        print (data.ndarray[0][5])
+        print (num2date(data.ndarray[0][5]))
+        dt = num2date(data.ndarray[0][5])
+        year = dt.year
+        logdict['Year'] = year
+    except:
+        pass
+
+    print (data.length())
+
+    #============== Checking W01..W16 headers in IAF files ================
+    """
+    W01 Station code              " CLF"  (20 43 4C 46) 
+    W02 Year and day number      2020001  (A1 D2 1E 00) 
+    W03 Co-latitude (deg x 1000)   41975  (F7 A3 00 00) 
+    W04 Longitude (deg x 1000)      2260  (D4 08 00 00) 
+    W05 Elevation (metres)           145  (91 00 00 00) 
+    W06 Reported elements         "XYZG"  (58 59 5A 47) 
+    W07 Institute code            "IPGP"  (49 50 47 50) 
+    W08 D-conversion factor        10000  (10 27 00 00) 
+    W09 Data quality code         "IMAG"  (49 4D 41 47) 
+    W10 Instrument code           "  RC"  (20 20 52 43) 
+    W11 Limit for K9                 450  (C2 01 00 00) 
+    W12 Sample period (ms)           200  (C8 00 00 00) 
+    W13 Sensor orientation        "HDZF"  (48 44 5A 46) 
+    W14 Publication date          "2102"  (32 31 30 32) Date of acceptation as Definitive - will be set by INTERMAGNET
+    W15 Format version           ver 2.1  (03 00 00 00) 
+    W16 Reserved word                  0  (00 00 00 00) 
+    """
+    print (data.header)
+    print (data.header.get('StationIAGAcode'))
+    print (data.header.get('DataAcquisitionLatitude'))
+    print (data.header.get('DataAcquisitionLongitude'))
+    print (data.header.get('DataElevation'))
+    print (data.header.get('DataComponents'))
+    print (data.header.get('StationInstitution'))
+    print (data.header.get('StationK9'))
+    print (data.header.get('DataPublicationDate'))
+    print (data.header.get('DataSensorOrientation'))
+    print (data.header.get('DataFormat'))    
+
+    # ================ YEARMEAN file versus IAF files ======================
+
+
+    #================ Checking BLV file ===================================
+
+    #============== Checking K-indices in IAF files =======================
+
+    #================== Checking Readme.IMO file ==========================
+
+
+    #====== Checking the calculation daily and hourly means ===============
+
+
+
+    #=================== Checking yearmean.imo ============================
+
+    logdict['Issues'] = issuelist
+    checklist = logdict.get('CheckList',[])
+    checklist.append('basic MagPy test performed')
+    logdict['CheckList'] = checklist
+
+    return data, logdict
+
+
+def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
+
+        managermail = ''
+        # Create mailing list
+        # -----------
+        # Extract e-mail address from contact in README
+        contacts = logdict.get('Contact',[])
+        emails = contacts
+
+        # if alternative email contacts are provided, then use those
+        # read file with -e emails option - name: mailinglist.cfg
+        alternativeemails = GetMailFromList(obscode, mailinglist)
+        if debug:
+            print (" -> Contacts: {}".format(contacts))
+            print (" -> Alternative contacts: {}".format(alternativeemails))
+        if not isinstance(alternativeemails, list):
+            alternativeemails = [alternativeemails]
+        if alternativeemails and len(alternativeemails) > 0:
+            emails = alternativeemails
+
+        manager = GetMailFromList('manager', mailinglist)
+        if not isinstance(manager, list):
+            manager = [manager]
+        if len(manager) > 0:
+            managermail = ",".join(manager)  # used for mails not in testobslist
+
+        #print ("Mailing list looks like:", emails)
+        if emails:
+            # Email could be extracted from contact or from alternativelist
+            if referee: # referee is determined by GetDataChecker
+                emails.append(referee)
+            if manager:
+                for man in manager:
+                    emails.append(man)
+            # emails
+            print (emails)
+            # Remove Duplicates
+            emails = list(set(emails))
+            print (emails)
+            email = ",".join(emails)
+        else:
+            emails = []
+            # IMBOT managers are always informed
+            for man in manager:
+                emails.append(man)
+            email = ",".join(emails)
+
+        if debug:
+            print (" -> Referee: {}".format(referee))
+            print (" -> Manager: {}".format(managermail))
+            print (" -> all receipients: {}".format(email))
+            emails = []
+            email = ''
+            print (" Skipping all mail addresses and only sending to IMBOT administrator")
+            admin = GetMailFromList('admin', mailinglist)
+            if not isinstance(admin, list):
+                admin = [admin]
+            for ad in admin:
+                emails.append(ad)
+            email = ",".join(emails)
+            manageremail = email
+            print (" -> debug recipient: {}".format(email))
+
+
+        return email, managermail
+
+
+def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], testobslist=[], checklist=['default'], pathemails=None, mailcfg='', debug=False):
+        """
+        DESCRIPTION
+            method to perfom data conversion and call the check methods
+            reports and mail will be constructed for each new/updated observatory data set
+        PARAMETER
+            logdict (dictionary) : external, contains logging information for all analyszed data sets to be send to the IMBOT manager
+            reportdict (dictionary) : internal, containes analysis reports for observatories
+            readdict (dictionary) : contains a dictionary with parameters for a single observatory
+            testobslist = ['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
+
+            Structure of reportdict:
+                'OBSCODE'    :  { ... }  -> readdict
+            Structure of readdict:
+                 key                    :       value
+              month_number              :      { ... } -> loggingdict
+              Obscode                   :      code
+              #Level                    :      obtained average quality level
+              Sourcepath                :      obtained quality level
+              Readability test file     :      test file
+              Readability               :      only good if "OK"
+
+        """
+        reportdict = {}
+        readdict = {}
+        loggingdict = {}
+        loggingdict['Issues'] = []
+        loggingdict['Level'] = None
+        for element in pathsdict:
+                print ("Starting analysis for {}".format(element))
+                #try
+                readdict = {}
+                para = pathsdict.get(element)
+                dailystreamlist = []
+                loggingdict = {}
+                tablelist = []
+                datelist = []
+                emails = None
+                referee = None
+                nameofdatachecker = ''
+                sourcepath = os.path.join(tmpdir, 'raw', para.get('obscode'))
+                destinationpath = os.path.join(destination, 'level', para.get('obscode'))
+                readdict['Obscode'] = para.get('obscode')
+                readdict['Sourcepath'] = sourcepath
+                readdict['Destinationpath'] = destinationpath
+                # get month list
+
+                updatedictionary = {} #GetMetaUpdates()
+                loggingdict = {}
+
+                # Initializing analysis year
+                year = datetime.utcnow().year - 1
+                loggingdict['year'] = year
+
+                # - perform MagPy basic read and content check, extract binary data
+                # -----------
+                data, loggingdict = MagPy_check1min(sourcepath,para.get('obscode'),logdict=loggingdict, updateinfo=updatedictionary, debug=debug)
+                readdict['Year'] = loggingdict.get('year',year)
+
+                # - perform check1min (dos) analysis  -> report will be attached to the mail
+                # -----------
+                loggingdict = DOS_check1min(sourcepath,para.get('obscode'),year=readdict.get('Year'),updateinfo=updatedictionary,logdict=loggingdict, debug=debug)
+
+                #print (loggingdict)
+                #sys.exit()
+
+                """
+                    # - perform level test (delta f)
+                    # -----------
+                    if debug:
+                        print ("Running delta F test")
+                    loggingdict = DeltaFTest(mdata, loggingdict)
+                    # - perform level test (standard descriptions)
+                    # -----------
+                    if debug:
+                        print ("Running Standard level test")
+                    tablelist, loggingdict = CheckStandardLevel(mdata, loggingdict)
+                    # - perform level test (definitive status) - requires path to definitive minute values
+                    # -----------
+                    # is it possible to extract an e-mail address here?
+                    if debug:
+                        print ("Checking definitive status")
+                    loggingdict = CheckDiffs2Minute(mdata, loggingdict, minutesource=pathminute, obscode=para.get('obscode'), daterange=[dates[0],dates[1]])
+                    # extract some daily records
+                    # -----------
+                    if debug:
+                        print ("Extracting quiet days")
+                    daylist = CreateDailyList(datetime.strptime(dates[0],'%Y-%m-%d'), datetime.strptime(dates[1],'%Y-%m-%d'),output='text')
+                    for day in selecteddayslist:
+                        if day in daylist:
+                            print ("Found a quiet day ({}) for power analysis - extracting information:".format(day))
+                            dayst = DataStream()
+                            dayar = mdata._select_timerange(starttime=day,endtime=datetime.strptime(day,'%Y-%m-%d')+timedelta(days=1))
+                            dayst.ndarray = dayar
+                            dayst.header = mdata.header
+                            if dayst.length()[0] > 0:
+                                dailystreamlist.append(dayar)
+                                del dayar
+                    # export data
+                    # -----------
+                    if debug:
+                        print ("Exporting monthly ImagCDF files")
+                    success = ExportMonth(destinationpath, mdata, logdict={})
+                    # clear existing month
+                """
+
+                # Report
+                # -----------------
+                # Construct a detailed report with graphs from loggingdict and readdict and temporary graphs
+
+
+                #if len(loggingdict.get('Issues')) > 0 and not loggingdict.get('Level') == 0:
+                #        loggingdict['Level'] = 1
+                readdict['MagPyVersion'] = magpyversion
+
+                # perform noise analysis on selcted days
+                # -----------
+                if len(dailystreamlist) > 0:
+                    readdict = PowerAnalysis(dailystreamlist, readdict)
+                    # eventually update tablelist if noiselvel to large
+                    tablelist = UpdateTable(tablelist, readdict)
+
+                # add results to a large dictionary for logging on the IMBOT server
+                # -----------
+                reportdict[para.get('obscode')] = {}
+                nedic = {}
+                for key in readdict:
+                    value = readdict[key]
+                    nedic[key] = value
+                reportdict[para.get('obscode')] = nedic
+
+                # For each Obs create report and mailtext for submitter, select and inform data checker
+                # -----------
+                #level = WriteReport(destinationpath, para, readdict, logdict, tablelist=tablelist)
+                level = loggingdict.get('Level')
+                print ("-Asigning data checker")
+                nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist_minute.cfg"))
+                print ("-Creating Mail")
+                stationname = ''  # contained in readme - extract
+                mailtext = CreateMinuteMail(level, para.get('obscode'), stationname=stationname, year=readdict.get("Year"), nameofdatachecker=nameofdatachecker)
+
+
+                email, managermail = ObtainEmailReceivers(loggingdict, para.get('obscode'), os.path.join(pathemails,"mailinglist_minute.cfg"), referee, debug=debug)
+
+                print (" -> sending to {}".format(email))
+
+                # DEFINE A LIST OF OBERVATORIES FOR A TEST RUN - ONLY THESE OBSERVATORIES WILL GET NOTIFICATIONS
+                # Send out emails
+                # -----------
+                if email and mailcfg:
+                    print ("Using mail configuration in ", mailcfg)
+                    maildict = ReadMetaData(mailcfg, filename="mail.cfg")
+                    attachfilelist = loggingdict.get('Attachment')
+                    print ("ATTACHMENT looks like:", attachfilelist)
+                    print (" -> for file sending", ",".join(attachfilelist))
+                    maildict['Attach'] = ",".join(attachfilelist)
+                    maildict['Text'] = mailtext
+                    maildict['Subject'] = 'IMBOT one-minute analysis for {}'.format(para.get('obscode'))
+                    maildict['From'] = 'roman_leonhardt@web.de'
+                    print ("Joined Mails", email)
+                    print ("-> currently only used for selected. Other mails only send to leon")
+                    if para.get('obscode').upper() in testobslist: #or not testobslist
+                        print (" Selected observatory is part of a Testing list")
+                        maildict['To'] = email
+                    else:
+                        maildict['To'] = managermail
+                    print ("MAILDICT", maildict)
+                    sm(maildict)
+                else:
+                    print ("Could not find mailconfiguration - skipping mail transfer")
+                    #logdict['Not yet informed'].append(para.get('obscode'))
+                    pass
+
+                if not debug:
+                    mailname = os.path.join(destinationpath, "mail-to-send.txt")
+                    with open(mailname, 'w') as out:
+                        out.write(mailtext)
+
+                # Cleanup
+                # -----------
+                # Delete temporary directory
+                # -----------
+                print ("Deleting tempory directory {}".format(sourcepath))
+                try:
+                    if sourcepath.find(para.get('obscode')) > -1:
+                        # just make sure that temporary information is only deleted for the current path
+                        # it might happen that treatment/read failures keep some old information in dicts
+                        print ("Cleaning up temporary folder ", sourcepath)
+                        shutil.rmtree(sourcepath, ignore_errors=True)
+                except:
+                    pass
+
+                readdict.clear()
+                gc.collect()
+
+                #except:
+                #    logdict["element"] = "Analysis problem in ConvertData routine"
+
+        return reportdict
+
 
 def main(argv):
     imbotversion = '1.0.1'
-    checkrange = 3 # 3 hours
+    checkrange = 0 #3 # 3 hours
     statusmsg = {}
     obslist = []
     excludeobs = []
@@ -1387,12 +1873,14 @@ def main(argv):
     pathemails = ''
     tele = ''
     logpath = '/var/log/magpy'
-    mailcfg = '/etc/martas'
+    mailcfg = '/etc/martas/mail.cfg'
     quietdaylist = ['2016-01-25','2016-01-29','2016-02-22','2016-03-13','2016-04-01','2016-08-28','2016-10-21','2016-11-05','2016-11-17','2016-11-19','2016-11-30','2016-12-01','2016-12-03','2016-12-04']
     manager = ['ro.leonhardt@googlemail.com','jreda@igf.edu.pl','hom@ngs.ru','tero.raita@sgo.fi','heumez@ipgp.fr','Andrew.Lewis@ga.gov.au']
     memory='/tmp/secondanalysis_memory.json'
     tmpdir="/tmp"
     testobslist=['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
+    analysistype = 'minuteanalysis'
+
     debug=False
 
     try:
@@ -1433,9 +1921,10 @@ def main(argv):
             print ('Example of memory:')
             print ('-------------------------------------')
             print ('Application:')
-            print ('python3 secondanalysis.py -s /tmp/SecondTest -d /tmp -t /tmp')
-            print ('python3 secondanalysis.py -s /home/leon/Tmp -t /tmp -d /tmp -o BOU -i /home/leon/Tmp/minute')
-            print ('python3 secondanalysis.py -s /media/leon/Images/DataCheck/2016/second/2016_step1 -d /media/leon/Images/DataCheck/IMBOT -t /media/leon/Images/DataCheck/tmp -i /media/leon/Images/DataCheck/2016/minute/Mag2016 -m /media/leon/Images/DataCheck/2016/testanalysis.json -o WIC')
+            print ('python3 minuteanalysis.py -s /media/leon/Images/Mag2020 -d /tmp -t /tmp -o CLF')
+            print ('python3 minuteanalysis.py -s /home/leon/Tmp -t /tmp -d /tmp -o BOU -i /home/leon/Tmp/minute')
+            print ('python3 secondanalysis.py -s /media/leon/Images/Mag2020 -d /tmp -t /media/leon/Images/DataCheck/tmp -i /media/leon/Images/DataCheck/2016/minute/Mag2016 -m /media/leon/Images/DataCheck/2016/testanalysis.json -o WIC')
+            print ('python3 minuteanalysis.py -s /media/leon/Images/Mag2020 -d /tmp -t /tmp -o CLF -e /home/leon/IMBOT/minute -D')
             sys.exit()
         elif opt in ("-s", "--source"):
             # delete any / at the end of the string
@@ -1473,8 +1962,8 @@ def main(argv):
         print ("Basic code test - done")
         sys.exit(0)
 
-    if not os.path.exists(os.path.join(logpath,"secondanalysis")):
-        os.makedirs(os.path.join(logpath,"secondanalysis"))
+    if not os.path.exists(os.path.join(logpath,analysistype)):
+        os.makedirs(os.path.join(logpath,analysistype))
 
     if not tele == '':
         # ################################################
@@ -1483,7 +1972,7 @@ def main(argv):
         ## New Logging features
         from martas import martaslog as ml
         # tele needs to provide logpath, and config path ('/home/cobs/SCRIPTS/telegram_notify.conf')
-        telelogpath = os.path.join(logpath,"secondanalysis","telegram.log")
+        telelogpath = os.path.join(logpath,analysistype,"telegram.log")
 
     if source == '':
         print ('Specify a valid path to a jobs dictionary (json):')
@@ -1498,238 +1987,6 @@ def main(argv):
         sys.exit()
 
 
-    # Read files, anaylse them and write to IMAGCDF
-    def ConvertData(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], testobslist=[], debug=False):
-        """
-        DESCRIPTION
-            method to perfom data conversion and call the check methods
-            reports and mail will be constructed for each new/updated observatory data set
-        PARAMETER
-            logdict (dictionary) : external, contains logging information for all analyszed data sets to be send to the IMBOT manager
-            reportdict (dictionary) : internal, containes analysis reports for observatories
-            readdict (dictionary) : contains a dictionary with parameters for a single observatory
-            testobslist = ['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
-
-            Structure of reportdict:
-                'OBSCODE'    :  { ... }  -> readdict
-            Structure of readdict:
-                 key                    :       value
-              month_number              :      { ... } -> loggingdict
-              Obscode                   :      code
-              #Level                    :      obtained average quality level
-              Sourcepath                :      obtained quality level
-              Readability test file     :      test file
-              Readability               :      only good if "OK"
-
-        """
-        reportdict = {}
-        for element in pathsdict:
-                print ("Starting analysis for {}".format(element))
-                #try
-                readdict = {}
-                para = pathsdict.get(element)
-                dailystreamlist = []
-                loggingdict = {}
-                tablelist = []
-                datelist = []
-                emails = None
-                referee = None
-                nameofdatachecker = ''
-                sourcepath = os.path.join(tmpdir, 'raw', para.get('obscode'))
-                destinationpath = os.path.join(destination, 'level', para.get('obscode'))
-                readdict['Obscode'] = para.get('obscode')
-                readdict['Sourcepath'] = sourcepath
-                readdict['Destinationpath'] = destinationpath
-                # get month list
-                datelist, readdict = GetMonths(sourcepath,readdict)  # here we already know whether data is readable
-                print ("GetMonth done for {}: {}, {}".format(element, datelist, readdict))
-                # - eventually read dictionary with meta information update (should be contained in pathsdict)
-                updatedictionary = {} #GetMetaUpdates()
-                if debug:
-                    datelist = datelist[:1]
-                for i, dates in enumerate(datelist): #enumerate(datelist[:1]): # enumerate(datelist):
-                    if debug:
-                        print ("Analyzing time range:", dates)
-                    # - read a month of data (including meta info and completeness check)
-                    # -----------
-                    # - each month gets an dictionary with level suggestions
-                    loggingdict = {}
-                    if debug:
-                        print ("Reading data")
-                    mdata, loggingdict = ReadMonth(sourcepath,dates[0],dates[1],updateinfo=updatedictionary)
-                    # - perform level test (delta f)
-                    # -----------
-                    if debug:
-                        print ("Running delta F test")
-                    loggingdict = DeltaFTest(mdata, loggingdict)
-                    # - perform level test (standard descriptions)
-                    # -----------
-                    if debug:
-                        print ("Running Standard level test")
-                    tablelist, loggingdict = CheckStandardLevel(mdata, loggingdict)
-                    # - perform level test (definitive status) - requires path to definitive minute values
-                    # -----------
-                    # is it possible to extract an e-mail address here?
-                    if debug:
-                        print ("Checking definitive status")
-                    loggingdict = CheckDiffs2Minute(mdata, loggingdict, minutesource=pathminute, obscode=para.get('obscode'), daterange=[dates[0],dates[1]])
-                    # extract some daily records
-                    # -----------
-                    if debug:
-                        print ("Extracting quiet days")
-                    daylist = CreateDailyList(datetime.strptime(dates[0],'%Y-%m-%d'), datetime.strptime(dates[1],'%Y-%m-%d'),output='text')
-                    for day in selecteddayslist:
-                        if day in daylist:
-                            print ("Found a quiet day ({}) for power analysis - extracting information:".format(day))
-                            dayst = DataStream()
-                            dayar = mdata._select_timerange(starttime=day,endtime=datetime.strptime(day,'%Y-%m-%d')+timedelta(days=1))
-                            dayst.ndarray = dayar
-                            dayst.header = mdata.header
-                            if dayst.length()[0] > 0:
-                                dailystreamlist.append(dayar)
-                                del dayar
-                    # export data
-                    # -----------
-                    if debug:
-                        print ("Exporting monthly ImagCDF files")
-                    success = ExportMonth(destinationpath, mdata, logdict={})
-                    # clear existing month
-
-                    if len(loggingdict.get('Issues')) > 0 and not loggingdict.get('Level') == 0:
-                        loggingdict['Level'] = 1
-                    if not emails:
-                        emails = loggingdict.get('Contact',None)
-
-                    #print (loggingdict.get('DefinitiveStatus'))
-                    #print ("CHECK WARNINGS", loggingdict.get('Warnings'))
-                    readdict[str(i+1)] = {}
-                    newdict = {}
-                    for key in loggingdict:
-                        value = loggingdict[key]
-                        newdict[key] = value
-                    readdict[str(i+1)] = newdict
-                    loggingdict.clear()
-
-                readdict['MagPyVersion'] = magpyversion
-
-                # perform noise analysis on selcted days
-                # -----------
-                if len(dailystreamlist) > 0:
-                    readdict = PowerAnalysis(dailystreamlist, readdict)
-                    # eventually update tablelist if noiselvel to large
-                    tablelist = UpdateTable(tablelist, readdict)
-
-                # add results to a large dictionary for logging on the IMBOT server
-                # -----------
-                reportdict[para.get('obscode')] = {}
-                nedic = {}
-                for key in readdict:
-                    value = readdict[key]
-                    nedic[key] = value
-                reportdict[para.get('obscode')] = nedic
-
-                # For each Obs create report and mailtext for submitter, select and inform data checker
-                # -----------
-                level = WriteReport(destinationpath, para, readdict, logdict, tablelist=tablelist)
-                print ("-Asigning data checker")
-                nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist.cfg"))
-                try:
-                    stationname = readdict.get('1').get('Header').get('StationName','')
-                except:
-                    stationname = ''
-                print ("-Creating Mail")
-                mailtext = CreateMail(level, para.get('obscode'), stationname=stationname, year=readdict.get("Year"), nameofdatachecker=nameofdatachecker)
-
-                # Create mailing list
-                # -----------
-                # if alternative email contacts are provided, then use those
-                # read file with -e emails option - name: mailinglist.cfg
-                # BOU  :  newcontact@usgs.org
-                alternativeemails = GetMailFromList(para.get('obscode'), os.path.join(pathemails,"mailinglist.cfg"))
-                if alternativeemails and len(alternativeemails) > 0:
-                    emails = alternativeemails
-
-                #manager = Get(para.get('obscode'), os.path.join(pathemails,"mailinglist.cfg"))
-                managermail = ",".join(manager)  # used for mails not in testobslist
-
-                #print ("Mailing list looks like:", emails)
-                if emails:
-                    #email = emails[0]
-                    if level == 2 and referee: # referee is determined by GetDataChecker
-                        emails.append(referee)
-                    if manager:
-                        for man in manager:
-                            emails.append(man)
-                    # emails
-                    email = ",".join(emails)
-                else:
-                    emails = []
-                    # IMBOT managers are always informed
-                    for man in manager:
-                        emails.append(man)
-                    email = ",".join(emails)
-
-                print ("---------------------------- ")
-                print ("MAILTEXT for {} to be send to {}:\n{}".format(para.get('obscode'), email, mailtext))
-
-                # DEFINE A LIST OF OBERVATORIES FOR A TEST RUN - ONLY THESE OBSERVATORIES WILL GET NOTIFICATIONS
-                #testobslist = ['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
-                # Send out emails
-                # -----------
-                if email:
-                    print ("Using mail configuration in ", mailcfg)
-                    maildict = ReadMetaData(mailcfg, filename="mail.cfg")
-                    attachfilelist = glob.glob(os.path.join(destinationpath,"*.txt"))
-                    print ("ATTACHMENT looks like:", attachfilelist)
-                    print (" -> for file sending", ",".join(attachfilelist))
-                    maildict['Attach'] = ",".join(attachfilelist)
-                    maildict['Text'] = mailtext
-                    maildict['Subject'] = 'IMBOT one-second analysis for {}'.format(para.get('obscode'))
-                    maildict['From'] = 'roman_leonhardt@web.de'
-                    print ("Joined Mails", email)
-                    print ("-> currently only used for selected. Other mails only send to leon")
-                    if para.get('obscode').upper() in testobslist: #or not testobslist
-                        maildict['To'] = email
-                    else:
-                        maildict['To'] = managermail
-                    print ("MAILDICT", maildict)
-                    sm(maildict)
-                else:
-                    #logdict['Not yet informed'].append(para.get('obscode'))
-                    pass
-                mailname = os.path.join(destinationpath, "mail-to-send.txt")
-                with open(mailname, 'w') as out:
-                    out.write(mailtext)
-
-                # Cleanup
-                # -----------
-                # Upload data to GIN
-                # -----------
-                print ("Copying data to destination directory {}".format(destination))
-                localsrc = os.path.join(destination, 'level', para.get('obscode'))
-                # Pleas note: GIN directory needs to be mounted
-                gindest = ''
-                #destination = shutil.copytree(localsrc, gindest)
-                # Delete temporary directory
-                # -----------
-                print ("Deleting tempory directory {}".format(sourcepath))
-                try:
-                    if sourcepath.find(para.get('obscode')) > -1:
-                        # just make sure that temporary information is only deleted for the current path
-                        # it might happen that treatment/read failures keep some old information in dicts  
-                        print ("Cleaning up temporary folder ", sourcepath)
-                        shutil.rmtree(sourcepath, ignore_errors=True)
-                except:
-                    pass
-
-                readdict.clear()
-                gc.collect()
-
-                #except:
-                #    logdict["element"] = "Analysis problem in ConvertData routine"
-
-        return reportdict
-
     """
     Main Prog
     """
@@ -1738,7 +1995,7 @@ def main(argv):
     # 1. got to source directory and locate files, check memory and whether file dates agree with criterion
 
     ## 1.1 Get current directory structure of source
-    currentdirectory, logdict = GetUploadInformation(source, checkrange=checkrange,obslist=obslist,excludeobs=excludeobs)
+    currentdirectory, logdict = GetUploadMinuteInformation(source, checkrange=checkrange,obslist=obslist,excludeobs=excludeobs)
     print ("Obtained Step1 directory: {}".format(currentdirectory))
 
     print ("Previous uploads: ", memdict)
@@ -1751,16 +2008,9 @@ def main(argv):
 
     print ("Running conversion and data check:")
     # 3. Convert Data includes validity tests, report creation and exporting of data
-    fullreport = ConvertData(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,debug=debug)
+    fullreport = CheckOneMinute(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,pathemails=pathemails,mailcfg=mailcfg, debug=debug)
 
-    # 4. if successfully analyzed create new memory
-
-    for key in newdict:
-        memdict[key] = newdict[key]
-    print ("Updating Memory: {}".format(memdict))
-    success = WriteMemory(memory, memdict)
-
-    # 5. send a report to the IMBOT manager containing failed and successful analysis
+    # 4. send a report to the IMBOT manager containing failed and successful analysis
 
     print ("INFORMATION for BOT MANAGER")
     print ("---------------------------")
@@ -1772,19 +2022,22 @@ def main(argv):
 
     #if something happend: if len(newdict) > 0:
     if len(newdict) > 0:
-        savelogpath = os.path.join(logpath,"secondanalysis","logdict.json")
+        savelogpath = os.path.join(logpath,"minuteanalysis","logdict.json")
         WriteMemory(savelogpath, logdict)
-        savelogpath = os.path.join(logpath,"secondanalysis","fulldict.json")
+        savelogpath = os.path.join(logpath,"minuteanalysis","fulldict.json")
         WriteMemory(savelogpath, fullreport)
 
-    # 5.1 send a report to the IMBOT manager containng all failed and successful analysis and whether submitter was informed
+    # 4.1 send a report to the IMBOT manager containng all failed and successful analysis and whether submitter was informed
 
-    if not tele == '':
+    sys.exit()
+
+
+    if not tele == '' and not debug:
         martaslog = ml(logfile=telelogpath,receiver='telegram')
         martaslog.telegram['config'] = tele
         martaslog.msg(notification)
 
-    print ("-> ONESECOND DATA ANALYSIS SUCCESSFULLY FINISHED")
+    print ("-> ONE-MINUTE DATA ANALYSIS SUCCESSFULLY FINISHED")
 
 
 if __name__ == "__main__":
