@@ -180,7 +180,7 @@ def GetUploadMinuteInformation(sourcepath, checkrange = 2, obslist = [],excludeo
             This way, the same method can also be applied to the level directory
         """
         print ("Running - getting upload information")
-        print (obslist)
+        print (" for observatories: {}".format(obslist))
         storage = {}
         logdict = {}
         for root, dirs, files in os.walk(sourcepath):
@@ -205,7 +205,7 @@ def GetUploadMinuteInformation(sourcepath, checkrange = 2, obslist = [],excludeo
                         logdict[root] = "Failed to extract mtimes"
                 if len(timelist) > 0:
                     youngest = max(timelist)
-                    print (datetime.utcfromtimestamp(youngest), datetime.utcnow()-timedelta(hours=checkrange))
+                    print (" Last modified : {} ; checking data older than {}".format(datetime.utcfromtimestamp(youngest), datetime.utcnow()-timedelta(hours=checkrange)))
                     # only if latest file is at least "checkrange" hours old
                     if datetime.utcfromtimestamp(youngest) < datetime.utcnow()-timedelta(hours=checkrange):
                         # check file extensions ... and amount of files (zipped, cdf, sec)
@@ -1493,7 +1493,7 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
         addcnt = len(glob.glob(os.path.join(sourcepath,"*.{}".format(obscode.lower()))))
         addcnt += len(glob.glob(os.path.join(sourcepath,"*.{}".format(obscode.upper()))))
         #check yearmean and readme
-        print ("  -> Result: {} binary files, {} BLV files, {} *.{} files", bincnt, blvcnt, addcnt, obscode.lower())
+        print ("  -> Result: {} binary files, {} BLV files, {} *.{} files".format(bincnt, blvcnt, addcnt, obscode.lower()))
         if bincnt == 12:
             print ("   Requested binary files are present")
         else:
@@ -1651,7 +1651,7 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
             print ("  -> all receipients: {}".format(email))
             emails = []
             email = ''
-            print ("  Skipping all mail addresses and only sending to IMBOT administrator")
+            print ("  Debug mode: Skipping all mail addresses and only sending to IMBOT administrator")
             admin = GetMailFromList('admin', mailinglist)
             if not isinstance(admin, list):
                 admin = [admin]
@@ -1729,9 +1729,6 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 # -----------
                 loggingdict = DOS_check1min(sourcepath,para.get('obscode'),year=readdict.get('Year'),updateinfo=updatedictionary,logdict=loggingdict, debug=debug)
 
-                #print (loggingdict)
-                #sys.exit()
-
                 """
                     # - perform level test (delta f)
                     # -----------
@@ -1775,7 +1772,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 # Report
                 # -----------------
                 # Construct a detailed report with graphs from loggingdict and readdict and temporary graphs
-                print ("Report for {}: {}".format(para.get('obscode'),loggingdict))
+                print (" Report for {}: {}".format(para.get('obscode'),loggingdict))
 
                 #if len(loggingdict.get('Issues')) > 0 and not loggingdict.get('Level') == 0:
                 #        loggingdict['Level'] = 1
@@ -1847,16 +1844,15 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     with open(mailname, 'w') as out:
                         out.write(mailtext)
 
-                # add successful analysis to memory
-                # -----------
+
                 # add info to notification for Telegram
                 # new/update to xxx - level1
-                print ("INFORMATION for BOT MANAGER")
-                print ("---------------------------")
-                print ("Source", currentdirectory)
+                #print ("INFORMATION for BOT MANAGER")
+                #print ("---------------------------")
+                #print ("Source", currentdirectory)
                 #print ("Mainlog", logdict) # - should be stored somewhere...
                 #print ("Fullreport of all analyses", fullreport) # - should be stored somewhere...
-                print ("Send to Telegram", notification)
+                #print ("Sending to Telegram:", notification)
                 # TODO add ignored directories into the notification
 
                 #if something happend: if len(newdict) > 0:
@@ -1915,15 +1911,15 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:e:l:c:p:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutesource=","emails=","logpath=","mailcfg=","testobslist=","debug=",])
     except getopt.GetoptError:
-        print ('secondanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutesource> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist>')
+        print ('minuteanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutesource> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
             print ('-------------------------------------')
             print ('Description:')
-            print ('-- secondanalysis.py will automatically analyse one second data products --')
+            print ('-- minuteanalysis.py will automatically analyse one second data products --')
             print ('-----------------------------------------------------------------')
-            print ('secondanalysis is a python3 program to automatically')
+            print ('minuteanalysis is a python3 program to automatically')
             print ('evaluate one second data submissions to INTERMAGNET.')
             print ('')
             print ('')
@@ -2031,7 +2027,6 @@ def main(argv):
     ## 1.2 Subtract the two directories - only new files remain
     newdict, notification = GetNewInputs(memdict,currentdirectory)
 
-    sys.exit()
     print ("Got New uploads:", newdict)
     # 2. For each new input --- copy files to a temporary local directory (unzip if necessary)
     logdict = CopyTemporary(newdict, tmpdir=tmpdir, logdict=logdict)
@@ -2041,9 +2036,15 @@ def main(argv):
     fullreport = CheckOneMinute(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,pathemails=pathemails,mailcfg=mailcfg, debug=debug)
 
     # 4. send a report to the IMBOT manager containing failed and successful analysis
+    # add successful analysis to memory
+    # -----------
+    for key in newdict:
+        memdict[key] = newdict[key]
+    print ("Updating Memory: {}".format(memdict))
+    success = WriteMemory(memory, memdict)
 
     # I need an analysis report and a "program" runtime log
-    print ("Fullreport", fullreport)
+    #print ("Fullreport", fullreport)
 
 
     # 4.1 send a report to the IMBOT manager containng all failed and successful analysis and whether submitter was informed
