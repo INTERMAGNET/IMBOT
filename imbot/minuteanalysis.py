@@ -1431,6 +1431,9 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
     """
 
     issuelist = []
+    logdict['Level'] = 1
+
+    print (" Running basic MagPy read and folder content test ...")
 
     def most_frequent(List): 
             return max(set(List), key = List.count) 
@@ -1480,7 +1483,6 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
 
     extension = 'BIN'
     #======== Checking presence readme.imo yearmean.imo imoyyyy.blv =======
-    print ("======== Checking presence readme.imo yearmean.imo imoyyyy.blv =======")
     try:
         bincnt = len(glob.glob(os.path.join(sourcepath,"*.bin")))
         if bincnt == 12:
@@ -1491,7 +1493,7 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
         addcnt = len(glob.glob(os.path.join(sourcepath,"*.{}".format(obscode.lower()))))
         addcnt += len(glob.glob(os.path.join(sourcepath,"*.{}".format(obscode.upper()))))
         #check yearmean and readme
-        print ("Result", bincnt, blvcnt, addcnt)
+        print ("  -> Result: {} binary files, {} BLV files, {} *.{} files", bincnt, blvcnt, addcnt, obscode.lower())
         if bincnt == 12:
             print ("   Requested binary files are present")
         else:
@@ -1529,7 +1531,7 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
     #logdict['year'] = data.ndarray[0][5]
 
     try:
-        print ("Updating year")
+        print (" - Updating year:")
         print (data.ndarray[0][5])
         print (num2date(data.ndarray[0][5]))
         dt = num2date(data.ndarray[0][5])
@@ -1559,17 +1561,18 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
     W15 Format version           ver 2.1  (03 00 00 00) 
     W16 Reserved word                  0  (00 00 00 00) 
     """
-    print (data.header)
-    print (data.header.get('StationIAGAcode'))
-    print (data.header.get('DataAcquisitionLatitude'))
-    print (data.header.get('DataAcquisitionLongitude'))
-    print (data.header.get('DataElevation'))
-    print (data.header.get('DataComponents'))
-    print (data.header.get('StationInstitution'))
-    print (data.header.get('StationK9'))
-    print (data.header.get('DataPublicationDate'))
-    print (data.header.get('DataSensorOrientation'))
-    print (data.header.get('DataFormat'))    
+    if debug:
+        print (data.header)
+        print (data.header.get('StationIAGAcode'))
+        print (data.header.get('DataAcquisitionLatitude'))
+        print (data.header.get('DataAcquisitionLongitude'))
+        print (data.header.get('DataElevation'))
+        print (data.header.get('DataComponents'))
+        print (data.header.get('StationInstitution'))
+        print (data.header.get('StationK9'))
+        print (data.header.get('DataPublicationDate'))
+        print (data.header.get('DataSensorOrientation'))
+        print (data.header.get('DataFormat'))    
 
     # ================ YEARMEAN file versus IAF files ======================
 
@@ -1608,8 +1611,8 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
         # read file with -e emails option - name: mailinglist.cfg
         alternativeemails = GetMailFromList(obscode, mailinglist)
         if debug:
-            print (" -> Contacts: {}".format(contacts))
-            print (" -> Alternative contacts: {}".format(alternativeemails))
+            print ("  -> Contacts: {}".format(contacts))
+            print ("  -> Alternative contacts: {}".format(alternativeemails))
         if not isinstance(alternativeemails, list):
             alternativeemails = [alternativeemails]
         if alternativeemails and len(alternativeemails) > 0:
@@ -1643,12 +1646,12 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
             email = ",".join(emails)
 
         if debug:
-            print (" -> Referee: {}".format(referee))
-            print (" -> Manager: {}".format(managermail))
-            print (" -> all receipients: {}".format(email))
+            print ("  -> Referee: {}".format(referee))
+            print ("  -> Manager: {}".format(managermail))
+            print ("  -> all receipients: {}".format(email))
             emails = []
             email = ''
-            print (" Skipping all mail addresses and only sending to IMBOT administrator")
+            print ("  Skipping all mail addresses and only sending to IMBOT administrator")
             admin = GetMailFromList('admin', mailinglist)
             if not isinstance(admin, list):
                 admin = [admin]
@@ -1656,7 +1659,7 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
                 emails.append(ad)
             email = ",".join(emails)
             manageremail = email
-            print (" -> debug recipient: {}".format(email))
+            print ("  -> debug recipient: {}".format(email))
 
 
         return email, managermail
@@ -1691,6 +1694,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
         loggingdict['Issues'] = []
         loggingdict['Level'] = None
         for element in pathsdict:
+                print ("-------------------------------------------")
                 print ("Starting analysis for {}".format(element))
                 #try
                 readdict = {}
@@ -1771,7 +1775,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 # Report
                 # -----------------
                 # Construct a detailed report with graphs from loggingdict and readdict and temporary graphs
-
+                print ("Report for {}: {}".format(para.get('obscode'),loggingdict))
 
                 #if len(loggingdict.get('Issues')) > 0 and not loggingdict.get('Level') == 0:
                 #        loggingdict['Level'] = 1
@@ -1797,44 +1801,44 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 # -----------
                 #level = WriteReport(destinationpath, para, readdict, logdict, tablelist=tablelist)
                 level = loggingdict.get('Level')
-                print ("-Asigning data checker")
+                print (" - Asigning data checker")
                 nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist_minute.cfg"))
-                print ("-Creating Mail")
+                print (" - Creating Mail")
                 stationname = ''  # contained in readme - extract
                 mailtext = CreateMinuteMail(level, para.get('obscode'), stationname=stationname, year=readdict.get("Year"), nameofdatachecker=nameofdatachecker)
 
 
                 email, managermail = ObtainEmailReceivers(loggingdict, para.get('obscode'), os.path.join(pathemails,"mailinglist_minute.cfg"), referee, debug=debug)
 
-                print (" -> sending to {}".format(email))
+                print ("   -> sending to {}".format(email))
 
                 # DEFINE A LIST OF OBERVATORIES FOR A TEST RUN - ONLY THESE OBSERVATORIES WILL GET NOTIFICATIONS
                 # Send out emails
                 # -----------
                 if email and mailcfg:
                     if debug:
-                        print ("Using mail configuration in ", mailcfg)
+                        print ("  Using mail configuration in ", mailcfg)
                     maildict = ReadMetaData(mailcfg, filename="mail.cfg")
                     attachfilelist = loggingdict.get('Attachment')
                     if debug:
-                        print ("ATTACHMENT looks like:", attachfilelist)
-                        print (" -> for file sending", ",".join(attachfilelist))
+                        print ("  ATTACHMENT looks like:", attachfilelist)
+                        print ("   -> for file sending", ",".join(attachfilelist))
                     maildict['Attach'] = ",".join(attachfilelist)
                     maildict['Text'] = mailtext
                     maildict['Subject'] = 'IMBOT one-minute analysis for {}'.format(para.get('obscode'))
                     maildict['From'] = 'roman_leonhardt@web.de'
                     if debug:
-                        print ("Joined Mails", email)
-                        print ("-> currently only used for selected. Other mails only send to leon")
+                        print ("  Joined Mails", email)
+                        print ("  -> currently only used for selected. Other mails only send to leon")
                     if para.get('obscode').upper() in testobslist: #or not testobslist
-                        print (" Selected observatory is part of a Testing list")
+                        print ("  Selected observatory is part of a Testing list")
                         maildict['To'] = email
                     else:
                         maildict['To'] = managermail
                     #print ("MAILDICT", maildict)
                     sm(maildict)
                 else:
-                    print ("Could not find mailconfiguration - skipping mail transfer")
+                    print ("  Could not find mailconfiguration - skipping mail transfer")
                     #logdict['Not yet informed'].append(para.get('obscode'))
                     pass
 
@@ -1843,16 +1847,36 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     with open(mailname, 'w') as out:
                         out.write(mailtext)
 
+                # add successful analysis to memory
+                # -----------
+                # add info to notification for Telegram
+                # new/update to xxx - level1
+                print ("INFORMATION for BOT MANAGER")
+                print ("---------------------------")
+                print ("Source", currentdirectory)
+                #print ("Mainlog", logdict) # - should be stored somewhere...
+                #print ("Fullreport of all analyses", fullreport) # - should be stored somewhere...
+                print ("Send to Telegram", notification)
+                # TODO add ignored directories into the notification
+
+                #if something happend: if len(newdict) > 0:
+                #if len(newdict) > 0:
+                #    savelogpath = os.path.join(logpath,"minuteanalysis","logdict.json")
+                #    WriteMemory(savelogpath, logdict)
+                #    savelogpath = os.path.join(logpath,"minuteanalysis","fulldict.json")
+                #    WriteMemory(savelogpath, fullreport)
+
+
                 # Cleanup
                 # -----------
                 # Delete temporary directory
                 # -----------
-                print ("Deleting tempory directory {}".format(sourcepath))
+                print (" - Deleting tempory directory {}".format(sourcepath))
                 try:
                     if sourcepath.find(para.get('obscode')) > -1:
                         # just make sure that temporary information is only deleted for the current path
                         # it might happen that treatment/read failures keep some old information in dicts
-                        print ("Cleaning up temporary folder ", sourcepath)
+                        print (" - Cleaning up temporary folder ", sourcepath)
                         shutil.rmtree(sourcepath, ignore_errors=True)
                 except:
                     pass
@@ -2007,6 +2031,7 @@ def main(argv):
     ## 1.2 Subtract the two directories - only new files remain
     newdict, notification = GetNewInputs(memdict,currentdirectory)
 
+    sys.exit()
     print ("Got New uploads:", newdict)
     # 2. For each new input --- copy files to a temporary local directory (unzip if necessary)
     logdict = CopyTemporary(newdict, tmpdir=tmpdir, logdict=logdict)
@@ -2018,24 +2043,8 @@ def main(argv):
     # 4. send a report to the IMBOT manager containing failed and successful analysis
 
     # I need an analysis report and a "program" runtime log
-    print ("Results", logdict)
     print ("Fullreport", fullreport)
 
-
-    print ("INFORMATION for BOT MANAGER")
-    print ("---------------------------")
-    print ("Source", currentdirectory)
-    #print ("Mainlog", logdict) # - should be stored somewhere...
-    #print ("Fullreport of all analyses", fullreport) # - should be stored somewhere...
-    print ("Send to Telegram", notification)
-    # TODO add ignored directories into the notification
-
-    #if something happend: if len(newdict) > 0:
-    if len(newdict) > 0:
-        savelogpath = os.path.join(logpath,"minuteanalysis","logdict.json")
-        WriteMemory(savelogpath, logdict)
-        savelogpath = os.path.join(logpath,"minuteanalysis","fulldict.json")
-        WriteMemory(savelogpath, fullreport)
 
     # 4.1 send a report to the IMBOT manager containng all failed and successful analysis and whether submitter was informed
 
