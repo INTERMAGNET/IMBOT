@@ -127,6 +127,8 @@ def sendmail(dic):
     # TODO log if file does not exist
     for f in files:
         part = MIMEBase('application', "octet-stream")
+        if not os.path.isfile(f):
+            print (" File {} not existing".format(f))
         part.set_payload( open(f,"rb").read() )
         encoders.encode_base64(part)
         part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(f))

@@ -1312,6 +1312,9 @@ def GetDataChecker(obscode, path="/path/to/refereelist.cfg"):
         for mail in checkdict:
             subdict = checkdict[mail]
             obslist = subdict.get('obslist',[])
+            if not isinstance(obslist,list):
+                obslist = [obslist]
+    
             if obscode in obslist:
                 checker = subdict.get('name','')
                 checkermail = mail
@@ -1322,6 +1325,37 @@ def GetDataChecker(obscode, path="/path/to/refereelist.cfg"):
             return checker, checkermail
         else:
             return fallback, fallbackmail
+
+
+def GetObsListFromChecker(obslist=[],path="/path/to/refereelist.cfg"):
+        """
+        DESCRIPTION
+            determine a data checker for the Observatory defined by obscode.
+        PARAMETER:
+            path ideally should be the same as for mail.cfg
+        RETURNS:
+            two strings, a name and a email address
+        """
+        cleanobslist = [el for el in obslist if not el in ['REFEREE','referee']]
+        fullobslist = []
+        if not os.path.isfile(path):
+            print ("DID NOT FIND REFEREE CONFIGURATION FILE")
+            return []
+        checkdict = GetConf(path)
+        for mail in checkdict:
+            subdict = checkdict[mail]
+            obslist = subdict.get('obslist',[])
+            if not isinstance(obslist,list):
+                obslist = [obslist]
+            if len(obslist) > 0:
+                if len(fullobslist) > 0:
+                    fullobslist.extend(obslist)
+                else: 
+                    fullobslist = obslist
+        if len(cleanobslist) > 0:
+            fullobslist.extend(cleanobslist)
+
+        return list(set(fullobslist))
 
 
 def GetMailFromList(obscode, path="/path/to/mailinglist.cfg"):
@@ -1386,7 +1420,7 @@ def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecke
 
         return maintext
 
-def DOS_check1min(sourcepath, obscode, year=2020, winepath='/home/leon/.wine/drive_c/',logdict={}, updateinfo={}, optionalheads=['StationWebInfo', 'DataTerms', 'DataReferences'], debug= False):
+def DOS_check1min(sourcepath, obscode, year=2020, winepath='/root/.wine/drive_c/',logdict={}, updateinfo={}, optionalheads=['StationWebInfo', 'DataTerms', 'DataReferences'], debug= False):
     # requires wine
 
     sleeptime = 10
@@ -1396,13 +1430,15 @@ def DOS_check1min(sourcepath, obscode, year=2020, winepath='/home/leon/.wine/dri
     # This creates a symbolic link on python in tmp directory
     if os.path.isdir(dst):
         os.unlink(dst)
+    #if not os.path.exists(dst):   # daten need to exist
+    #    os.makedirs(dst)
     os.symlink(src, dst)
 
     curwd = os.getcwd()
     os.chdir(winepath)
 
-    cmd = "wine start check1min.exe C:\\\\daten\\\\{} {} {} C:\\\\daten\\\\{}\\\\{}report{}.txt".format(obscode,obscode,year,obscode,obscode.lower(),year)
-    print (cmd)
+    cmd = 'WINEPREFIX="/root/.wine" /usr/bin/wine start check1min.exe C:\\\\daten\\\\{} {} {} C:\\\\daten\\\\{}\\\\{}report{}.txt'.format(obscode,obscode,year,obscode,obscode.lower(),year)
+    print (" Calling {}".format(cmd))
     import subprocess
     import time
 
@@ -1411,6 +1447,9 @@ def DOS_check1min(sourcepath, obscode, year=2020, winepath='/home/leon/.wine/dri
 
     os.chdir(curwd)
     time.sleep(sleeptime) # wait a while to finish analysis
+    dirs = os.listdir(dst)
+    if debug:
+        print (" DIRS:", dirs)
     os.unlink(dst)
 
 
@@ -1633,10 +1672,10 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
                 for man in manager:
                     emails.append(man)
             # emails
-            print (emails)
+            if debug:
+                print ("  -> All identified receivers including duplicates:", emails)
             # Remove Duplicates
             emails = list(set(emails))
-            print (emails)
             email = ",".join(emails)
         else:
             emails = []
@@ -1661,11 +1700,10 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
             manageremail = email
             print ("  -> debug recipient: {}".format(email))
 
-
         return email, managermail
 
 
-def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], testobslist=[], checklist=['default'], pathemails=None, mailcfg='', debug=False):
+def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], testobslist=[], checklist=['default'], pathemails=None, mailcfg='',notification={}, debug=False):
         """
         DESCRIPTION
             method to perfom data conversion and call the check methods
@@ -1689,10 +1727,8 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
         """
         reportdict = {}
-        readdict = {}
-        loggingdict = {}
-        loggingdict['Issues'] = []
-        loggingdict['Level'] = None
+        #readdict = {}
+        #loggingdict = {}
         for element in pathsdict:
                 print ("-------------------------------------------")
                 print ("Starting analysis for {}".format(element))
@@ -1701,17 +1737,25 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 para = pathsdict.get(element)
                 dailystreamlist = []
                 loggingdict = {}
+                loggingdict['Issues'] = []
+                loggingdict['Level'] = None
                 tablelist = []
                 datelist = []
                 emails = None
                 referee = None
                 nameofdatachecker = ''
                 sourcepath = os.path.join(tmpdir, 'raw', para.get('obscode'))
-                destinationpath = os.path.join(destination, 'level', para.get('obscode'))
+                destinationpath = os.path.join(destination, para.get('obscode'))
                 readdict['Obscode'] = para.get('obscode')
                 readdict['Sourcepath'] = sourcepath
                 readdict['Destinationpath'] = destinationpath
-                # get month list
+                
+                # Check notification whether update or new
+                print (" Notification: ", notification.get('Updated data'),[])
+                print (" Obscode:", para.get('obscode'))
+                updatestr = ''
+                #if obscode in updatelist:
+                #    updatestr = 'Data UPDATE received: '
 
                 updatedictionary = {} #GetMetaUpdates()
                 loggingdict = {}
@@ -1822,45 +1866,53 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                         print ("   -> for file sending", ",".join(attachfilelist))
                     maildict['Attach'] = ",".join(attachfilelist)
                     maildict['Text'] = mailtext
-                    maildict['Subject'] = 'IMBOT one-minute analysis for {}'.format(para.get('obscode'))
+                    maildict['Subject'] = '{}IMBOT one-minute analysis for {}'.format(updatestr,para.get('obscode'))
                     maildict['From'] = 'roman_leonhardt@web.de'
                     if debug:
                         print ("  Joined Mails", email)
                         print ("  -> currently only used for selected. Other mails only send to leon")
                     if para.get('obscode').upper() in testobslist: #or not testobslist
-                        print ("  Selected observatory is part of a Testing list")
+                        print ("  Selected observatory is part of the 'productive' list")
+                        print ("   - > emails will be send to referee, submitters and manager")
                         maildict['To'] = email
                     else:
+                        print ("  Selected observatory is NOT part of the 'productive' list")
+                        print ("   - > emails will be send to IMBOT managers only")
                         maildict['To'] = managermail
                     #print ("MAILDICT", maildict)
+                    #OVERWRITE FOR TESTING purposes
+                    #print (" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                    #print ("  Overwriting mail setting and sending only to admin for testing")
+                    #maildict['To'] = 'ro.leonhardt@googlemail.com'
+                    print ("  ... sending mail now")
                     sm(maildict)
+                    print (" -> DONE: mail and report send") 
                 else:
                     print ("  Could not find mailconfiguration - skipping mail transfer")
                     #logdict['Not yet informed'].append(para.get('obscode'))
                     pass
 
+                # Saving Logs and 
+                # Create a destination path to save reports and mails
                 if not debug:
-                    mailname = os.path.join(destinationpath, "mail-to-send.txt")
+                    if not os.path.exists(destinationpath):
+                        os.makedirs(destinationpath)
+                    mailname = os.path.join(destinationpath, "mail-to-send.log")
                     with open(mailname, 'w') as out:
                         out.write(mailtext)
+                    # write report
+                    try:
+                        for atf in attachfilelist:
+                            print (" saving file {}".format(atf))
+                            copyfile(atf,destinationpath)
+                    except:
+                        pass
 
-
-                # add info to notification for Telegram
-                # new/update to xxx - level1
-                #print ("INFORMATION for BOT MANAGER")
-                #print ("---------------------------")
-                #print ("Source", currentdirectory)
-                #print ("Mainlog", logdict) # - should be stored somewhere...
-                #print ("Fullreport of all analyses", fullreport) # - should be stored somewhere...
-                #print ("Sending to Telegram:", notification)
-                # TODO add ignored directories into the notification
-
-                #if something happend: if len(newdict) > 0:
-                #if len(newdict) > 0:
-                #    savelogpath = os.path.join(logpath,"minuteanalysis","logdict.json")
-                #    WriteMemory(savelogpath, logdict)
-                #    savelogpath = os.path.join(logpath,"minuteanalysis","fulldict.json")
-                #    WriteMemory(savelogpath, fullreport)
+                    if len(loggingdict) > 0:
+                        savelogpath = os.path.join(destinationpath,"logdict.json")
+                        WriteMemory(savelogpath, loggingdict)
+                        savelogpath = os.path.join(destinationpath,"readdict.json")
+                        WriteMemory(savelogpath, readdict)
 
 
                 # Cleanup
@@ -1968,6 +2020,8 @@ def main(argv):
             quietdaylist = arg.split(',')
         elif opt in ("-o", "--observatories"):
             obslist = arg.replace(" ","").split(',')
+            if 'REFEREE' in obslist:
+                obslist = GetObsListFromChecker(obslist, os.path.join(pathemails,"refereelist_minute.cfg"))
             print (" OBSLIST provided: dealing only with {}".format(obslist))
         elif opt in ("-x", "--exclude"):
             excludeobs = arg.replace(" ","").split(',')
@@ -1986,7 +2040,7 @@ def main(argv):
     if debug and source == '':
         print ("Basic code test - done")
         sys.exit(0)
-
+    
     if not os.path.exists(os.path.join(logpath,analysistype)):
         os.makedirs(os.path.join(logpath,analysistype))
 
@@ -2001,15 +2055,14 @@ def main(argv):
 
     if source == '':
         print ('Specify a valid path to a jobs dictionary (json):')
-        print ('-- check secondanalysis.py -h for more options and requirements')
+        print ('-- check minuteanalysis.py -h for more options and requirements')
         sys.exit()
     else:
         memdict = ReadMemory(memory)
 
     if not os.path.exists(tmpdir):
-        print ('Specify a valid path to to temporarly save converted files:')
-        print ('-- check secondanalysis.py -h for more options and requirements')
-        sys.exit()
+        print ('Temporary path not exististig - creating it..')
+        os.makedirs(tmpdir)
 
 
     """
@@ -2035,7 +2088,7 @@ def main(argv):
     # 3. Convert Data includes validity tests, report creation and exporting of data
     fullreport = CheckOneMinute(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,pathemails=pathemails,mailcfg=mailcfg, debug=debug)
 
-    # 4. send a report to the IMBOT manager containing failed and successful analysis
+    # 4. Memory for already analyzed data
     # add successful analysis to memory
     # -----------
     for key in newdict:
@@ -2044,12 +2097,10 @@ def main(argv):
     success = WriteMemory(memory, memdict)
 
     # I need an analysis report and a "program" runtime log
-    #print ("Fullreport", fullreport)
-
+    print ("Fullreport", fullreport)
+    # 
 
     # 4.1 send a report to the IMBOT manager containng all failed and successful analysis and whether submitter was informed
-
-    sys.exit()
 
 
     if not tele == '' and not debug:

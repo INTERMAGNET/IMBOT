@@ -745,7 +745,9 @@ def CheckDiffs2Minute(data, logdict, minutesource='', obscode='',daterange=[]):
                 logdict['Definitive comparison'] = 'small differences in peak amplitudes between definitive one-minute and one-second data products observed'
             elif max(xa,ya,za) > 5:
                 warningdict['Definitive comparison'] = 'Large amplitude differences between definitive one-minute and one-second data products' 
-                logdict['Definitive comparison'] = 'Large amplitude differences between definitive one-minute and one-second data products' 
+                logdict['Definitive comparison'] = 'Large amplitude differences between definitive one-minute and one-second data products'
+            if np.isnan(sum([xd,yd,zd,xa,ya,za])):
+                logdict['Definitive comparison'] = 'not conclusive as NAN values are found'
 
         logdict['Warnings'] = warningdict
         logdict['DefinitiveStatus'] = mindatadict
@@ -878,7 +880,7 @@ def CreateDailyList(startdate,enddate, output='datetime'):
 
 
 
-def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, tablelist=[]):
+def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, tablelist=[], year=2016):
         """
         DESCRIPTION
             Write a data report with basic information on submitted data set and possible issues
@@ -1001,7 +1003,7 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
             months = warningsummary[warn]
             warninglist.append("{} | {}\n".format(warn,",".join(months)))
 
-        text = ["# {} - Level {}\n\n# Analysis report for one second data from {}\n\n".format(obscode,level,obscode)]
+        text = ["# {} - Level {}\n\n# Analysis report for one second data from {} {}\n\n".format(obscode,level,obscode,year)]
         text.append("### Issues to be clarified for level 2:\n")
         if len(issuelist) > 0:
              text.append("\n")
@@ -1629,7 +1631,7 @@ def main(argv):
 
                 # For each Obs create report and mailtext for submitter, select and inform data checker
                 # -----------
-                level = WriteReport(destinationpath, para, readdict, logdict, tablelist=tablelist)
+                level = WriteReport(destinationpath, para, readdict, logdict, tablelist=tablelist,year=readdict.get("Year"))
                 print ("-Asigning data checker")
                 nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist.cfg"))
                 try:
