@@ -1500,7 +1500,7 @@ def main(argv):
 
 
     # Read files, anaylse them and write to IMAGCDF
-    def ConvertData(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], testobslist=[], debug=False):
+    def ConvertData(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], testobslist=[], notification=None, debug=False):
         """
         DESCRIPTION
             method to perfom data conversion and call the check methods
@@ -1535,6 +1535,7 @@ def main(argv):
                 datelist = []
                 emails = None
                 referee = None
+                submissionstatus = ''
                 nameofdatachecker = ''
                 sourcepath = os.path.join(tmpdir, 'raw', para.get('obscode'))
                 destinationpath = os.path.join(destination, 'level', para.get('obscode'))
@@ -1545,6 +1546,14 @@ def main(argv):
                 datelist, readdict = GetMonths(sourcepath,readdict)  # here we already know whether data is readable
                 print ("GetMonth done for {}: {}, {}".format(element, datelist, readdict))
                 # - eventually read dictionary with meta information update (should be contained in pathsdict)
+                # Identify submission status:
+                print ("-----------------------------")
+                print ("Identifying submission status")
+                print ("Notification", notification)
+                print ("OBSCODE", para.get('obscode'))
+                print ("STATUSmessage", submissionstatus) # if update change to "Submission updated:"
+                print ("-----------------------------")
+                
                 updatedictionary = {} #GetMetaUpdates()
                 if debug:
                     datelist = datelist[:1]
@@ -1687,7 +1696,7 @@ def main(argv):
                     print (" -> for file sending", ",".join(attachfilelist))
                     maildict['Attach'] = ",".join(attachfilelist)
                     maildict['Text'] = mailtext
-                    maildict['Subject'] = 'IMBOT one-second analysis for {}'.format(para.get('obscode'))
+                    maildict['Subject'] = '{}IMBOT one-second analysis for {}'.format(submissionstatus,para.get('obscode'))
                     maildict['From'] = 'roman_leonhardt@web.de'
                     print ("Joined Mails", email)
                     print ("-> currently only used for selected. Other mails only send to leon")
@@ -1754,7 +1763,7 @@ def main(argv):
 
     print ("Running conversion and data check:")
     # 3. Convert Data includes validity tests, report creation and exporting of data
-    fullreport = ConvertData(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,debug=debug)
+    fullreport = ConvertData(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,notification=notification,debug=debug)
 
     # 4. if successfully analyzed create new memory
 
