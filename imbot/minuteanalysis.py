@@ -1517,8 +1517,9 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
 
     minpath = os.path.join(sourcepath,'..')
     try:
+        print (" TRYING TO EXTRACT EMAIL ADRESSES from readme", pathname(minpath,obscode,typ='readme'))
         mails = ExtractEMails(pathname(minpath,obscode,typ='readme'))
-        #print (mails)
+        print (mails)
         logdict['Contact'] = mails
     except:
         issue = "Failed to extract an email address from README file"
