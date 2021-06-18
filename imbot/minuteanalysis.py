@@ -34,6 +34,8 @@ TODO:
  - Detailed instructions for submitters
     -> only single level in compressed files
 
+ - write a manual with detailed instructions also for test runs
+   -> if debug is choosen, mails should be send only to admin, no memory, etc 
 """
 
 # Local reference for development purposes
@@ -746,9 +748,9 @@ def CheckDiffs2Minute(data, logdict, minutesource='', obscode='',daterange=[]):
                         #if len(rlst) > 0:
                         ext = most_frequent(extlist)
 
-            #print ("Located minute data in ", path)
-            #print ("Located readme in ", readme)
-            #print ("Located main extension ", ext)
+            print ("Located minute data in ", path)
+            print ("Located readme in ", readme)
+            print ("Located main extension ", ext)
             if path:
                 thepath = os.path.join(path, "*{}".format(ext))
 
@@ -760,7 +762,7 @@ def CheckDiffs2Minute(data, logdict, minutesource='', obscode='',daterange=[]):
             return ''
 
         mails = ExtractEMails(pathname(minutesource,obscode,typ='readme'))
-        #print (mails)
+        print ("Got mailadresses in README: ", mails)
         logdict['Contact'] = mails
 
         if minutesource:
@@ -1296,6 +1298,8 @@ def GetDataChecker(obscode, path="/path/to/refereelist.cfg"):
         """
         DESCRIPTION
             determine a data checker for the Observatory defined by obscode.
+            Please note that only one data checker can be asigned for each record.
+            The last one will be chosen.
         PARAMETER:
             path ideally should be the same as for mail.cfg
         RETURNS:
@@ -1663,7 +1667,8 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
         if len(manager) > 0:
             managermail = ",".join(manager)  # used for mails not in testobslist
 
-        #print ("Mailing list looks like:", emails)
+        print ("Mailing list looks like:", emails)
+        print ("Referee:", referee)
         if emails:
             # Email could be extracted from contact or from alternativelist
             if referee: # referee is determined by GetDataChecker
@@ -1678,7 +1683,10 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
             emails = list(set(emails))
             email = ",".join(emails)
         else:
+            # contact could not be extracted from README and none is provided in alternativelist
             emails = []
+            if referee: # referee is determined by GetDataChecker
+                emails.append(referee)
             # IMBOT managers are always informed
             for man in manager:
                 emails.append(man)
@@ -1751,11 +1759,17 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 readdict['Destinationpath'] = destinationpath
                 
                 # Check notification whether update or new
+                print (notification)
                 print (" Notification: ", notification.get('Updated data'),[])
                 print (" Obscode:", para.get('obscode'))
+                # Extract a list of obscodes from updated data
+                updatelist = notification.get('Updated data'),[])
+                if len(updatelist) > 0:
+                    updatelist = [os.path.split(el) for el in updatelist]
+                print (" Updated data sets:", updatelist)
                 updatestr = ''
-                #if obscode in updatelist:
-                #    updatestr = 'Data UPDATE received: '
+                if para.get('obscode') in updatelist:
+                    updatestr = 'Data UPDATE received: '
 
                 updatedictionary = {} #GetMetaUpdates()
                 loggingdict = {}
@@ -1844,6 +1858,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 level = loggingdict.get('Level')
                 print (" - Asigning data checker")
                 nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist_minute.cfg"))
+                print ("   -> found {}: {}".format(nameofdatachecker,referee))
                 print (" - Creating Mail")
                 stationname = ''  # contained in readme - extract
                 mailtext = CreateMinuteMail(level, para.get('obscode'), stationname=stationname, year=readdict.get("Year"), nameofdatachecker=nameofdatachecker)
@@ -2079,6 +2094,7 @@ def main(argv):
     print ("Previous uploads: ", memdict)
     ## 1.2 Subtract the two directories - only new files remain
     newdict, notification = GetNewInputs(memdict,currentdirectory)
+    print (notification)
 
     print ("Got New uploads:", newdict)
     # 2. For each new input --- copy files to a temporary local directory (unzip if necessary)
@@ -2086,7 +2102,7 @@ def main(argv):
 
     print ("Running conversion and data check:")
     # 3. Convert Data includes validity tests, report creation and exporting of data
-    fullreport = CheckOneMinute(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,pathemails=pathemails,mailcfg=mailcfg, debug=debug)
+    fullreport = CheckOneMinute(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,pathemails=pathemails,mailcfg=mailcfg,notification=notification, debug=debug)
 
     # 4. Memory for already analyzed data
     # add successful analysis to memory
