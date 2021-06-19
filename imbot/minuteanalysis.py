@@ -1318,7 +1318,7 @@ def GetDataChecker(obscode, path="/path/to/refereelist.cfg"):
             obslist = subdict.get('obslist',[])
             if not isinstance(obslist,list):
                 obslist = [obslist]
-    
+
             if obscode in obslist:
                 checker = subdict.get('name','')
                 checkermail = mail
@@ -1397,7 +1397,7 @@ def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecke
         maintext += "!! Please note: this is just a preliminary test of an automatic evaluation routine. The following text is fictional, ratings are NOT related to any decision of INTERMAGNET. Text and reports are suggestions to be reviewed by the INTERMAGNET data commitee. !!\n\n"
 
         level0 = "Your data did not pass the automatic evaluation test. Please update your data submission.\nDetails can be found in the attached report. Please update your submission accordingly and perform a data check with checking tools provided by INTERMAGNET (link) before resubmission of your data set. If you need help please contact {}\n\n".format(nameofdatachecker)
-        level1 = "Congratulations! A basic data analysis indicates that your submission is ready for final checking by IM officers. So far all tests have been perfomed automatically. Please check the attached report for details.\n\nYour data set has been assigned to an INTERMAGNET data checker for evaluation.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all checks on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
+        level1 = "Congratulations! A basic data analysis indicates that your submission is ready for final evaluation by INTERMAGNET data checkers. So far all tests have been perfomed automatically. Please check the attached report for details.\n\nYour data set has been assigned to an INTERMAGNET data checker for evaluation.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all checks on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
         level2 = "Congratulations!\n\nYour data fulfills all requirements for a final review. A level 2 data product is already an excellent source for high resolution magnetic information. Your data set has been assigned to an INTERMAGNET data checker for final evaluation regarding data quality.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all check on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
 
         if int(level) == 0:
@@ -1416,9 +1416,9 @@ def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecke
     -----------------------------------------------------------------------------------
     Important Links:
 
-    check1min
+    check1min (http://magneto.igf.edu.pl/soft/check1min/)
 
-    MagPy
+    MagPy (https://github.com/geomagpy/magpy)
                                """
             maintext += instructionstext.replace('OBSCODE',obscode)
 
@@ -1495,6 +1495,9 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
                         path = os.path.join(root,dire)
                         rlst = glob.glob(os.path.join(path,'*eadme*'))
                         rlst.extend(glob.glob(os.path.join(path,'README*')))
+                        if len(rlst) > 1:
+                            testlist = [".{}".format(obscode.lower()), ".{}".format(obscode.upper())]
+                            rlst = [el for el in rlst if os.path.splitext(el)[1] in testlist]
                         if len(rlst) > 0:
                             readme = rlst[0]
                         extlist = [os.path.splitext(f)[1] for f in os.listdir(path)]
@@ -1517,9 +1520,9 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
 
     minpath = os.path.join(sourcepath,'..')
     try:
-        print (" TRYING TO EXTRACT EMAIL ADRESSES from readme", pathname(minpath,obscode,typ='readme'))
+        #print (" TRYING TO EXTRACT EMAIL ADRESSES from readme", pathname(minpath,obscode,typ='readme'))
         mails = ExtractEMails(pathname(minpath,obscode,typ='readme'))
-        print (mails)
+        #print (mails)
         logdict['Contact'] = mails
     except:
         issue = "Failed to extract an email address from README file"
@@ -1758,20 +1761,22 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 readdict['Obscode'] = para.get('obscode')
                 readdict['Sourcepath'] = sourcepath
                 readdict['Destinationpath'] = destinationpath
-                
+
                 # Check notification whether update or new
                 print (notification)
-                print (" Notification: ", notification.get('Updated data'),[])
+                print (" Notification: ", notification.get('Updated data',[]))
                 print (" Obscode:", para.get('obscode'))
                 # Extract a list of obscodes from updated data
-                updatelist = notification.get('Updated data'),[])
+                updatelist = notification.get('Updated data',[])
                 if len(updatelist) > 0:
-                    updatelist = [os.path.split(el) for el in updatelist]
+                    updatelist = [os.path.split(el)[-1] for el in updatelist]
                 print (" Updated data sets:", updatelist)
                 updatestr = ''
-                if para.get('obscode') in updatelist:
+                obscode = para.get('obscode')
+                if obscode in updatelist:
                     updatestr = 'Data UPDATE received: '
 
+                print (" Update string:", updatestr)
                 updatedictionary = {} #GetMetaUpdates()
                 loggingdict = {}
 
