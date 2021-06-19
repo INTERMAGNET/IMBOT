@@ -673,6 +673,9 @@ def CheckDiffs2Minute(data, logdict, minutesource='', obscode='',daterange=[]):
                         path = os.path.join(root,dire)
                         rlst = glob.glob(os.path.join(path,'*eadme*'))
                         rlst.extend(glob.glob(os.path.join(path,'README*')))
+                        if len(rlst) > 1:
+                            testlist = [".{}".format(obscode.lower()), ".{}".format(obscode.upper())]
+                            rlst = [el for el in rlst if os.path.splitext(el)[1] in testlist]
                         if len(rlst) > 0:
                             readme = rlst[0]
                         extlist = [os.path.splitext(f)[1] for f in os.listdir(path)]
@@ -1376,9 +1379,78 @@ def CreateMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max
 
         return maintext
 
+def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
+
+        managermail = ''
+        # Create mailing list
+        # -----------
+        # Extract e-mail address from contact in README
+        contacts = logdict.get('Contact',[])
+        emails = contacts
+
+        # if alternative email contacts are provided, then use those
+        # read file with -e emails option - name: mailinglist.cfg
+        alternativeemails = GetMailFromList(obscode, mailinglist)
+        if debug:
+            print ("  -> Contacts: {}".format(contacts))
+            print ("  -> Alternative contacts: {}".format(alternativeemails))
+        if not isinstance(alternativeemails, list):
+            alternativeemails = [alternativeemails]
+        if alternativeemails and len(alternativeemails) > 0:
+            emails = alternativeemails
+
+        manager = GetMailFromList('manager', mailinglist)
+        if not isinstance(manager, list):
+            manager = [manager]
+        if len(manager) > 0:
+            managermail = ",".join(manager)  # used for mails not in testobslist
+
+        print ("Mailing list looks like:", emails)
+        print ("Referee:", referee)
+        if emails:
+            # Email could be extracted from contact or from alternativelist
+            if referee: # referee is determined by GetDataChecker
+                emails.append(referee)
+            if manager:
+                for man in manager:
+                    emails.append(man)
+            # emails
+            if debug:
+                print ("  -> All identified receivers including duplicates:", emails)
+            # Remove Duplicates
+            emails = list(set(emails))
+            email = ",".join(emails)
+        else:
+            # contact could not be extracted from README and none is provided in alternativelist
+            emails = []
+            if referee: # referee is determined by GetDataChecker
+                emails.append(referee)
+            # IMBOT managers are always informed
+            for man in manager:
+                emails.append(man)
+            email = ",".join(emails)
+
+        if debug:
+            print ("  -> Referee: {}".format(referee))
+            print ("  -> Manager: {}".format(managermail))
+            print ("  -> all receipients: {}".format(email))
+            emails = []
+            email = ''
+            print ("  Debug mode: Skipping all mail addresses and only sending to IMBOT administrator")
+            admin = GetMailFromList('admin', mailinglist)
+            if not isinstance(admin, list):
+                admin = [admin]
+            for ad in admin:
+                emails.append(ad)
+            email = ",".join(emails)
+            manageremail = email
+            print ("  -> debug recipient: {}".format(email))
+
+        return email, managermail
+
 
 def main(argv):
-    imbotversion = '1.0.1'
+    imbotversion = '1.0.2'
     checkrange = 3 # 3 hours
     statusmsg = {}
     obslist = []
@@ -1549,9 +1621,18 @@ def main(argv):
                 # Identify submission status:
                 print ("-----------------------------")
                 print ("Identifying submission status")
-                print ("Notification", notification)
-                print ("OBSCODE", para.get('obscode'))
-                print ("STATUSmessage", submissionstatus) # if update change to "Submission updated:"
+                # Check notification whether update or new
+                print (" Notification: ", notification.get('Updated data',[]))
+                print (" Obscode:", para.get('obscode'))
+                # Extract a list of obscodes from updated data
+                updatelist = notification.get('Updated data',[])
+                if len(updatelist) > 0:
+                    updatelist = [os.path.split(el)[-1] for el in updatelist]
+                print (" Updated data sets:", updatelist)
+                obscode = para.get('obscode')
+                if obscode in updatelist:
+                    submissionstatus = 'Submission updated: '
+                print ("STATUSmessage", submissionstatus)
                 print ("-----------------------------")
                 
                 updatedictionary = {} #GetMetaUpdates()
@@ -1652,6 +1733,10 @@ def main(argv):
 
                 # Create mailing list
                 # -----------
+                ## TODO add ObtainMailAdress method here
+                email, managermail = ObtainEmailReceivers(loggingdict, para.get('obscode'), os.path.join(pathemails,"mailinglist.cfg"), referee, debug=debug)
+                print ("   -> sending to {}".format(email))
+                
                 # if alternative email contacts are provided, then use those
                 # read file with -e emails option - name: mailinglist.cfg
                 # BOU  :  newcontact@usgs.org

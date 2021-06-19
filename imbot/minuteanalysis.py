@@ -1763,7 +1763,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 readdict['Destinationpath'] = destinationpath
 
                 # Check notification whether update or new
-                print (notification)
+                #print (notification)
                 print (" Notification: ", notification.get('Updated data',[]))
                 print (" Obscode:", para.get('obscode'))
                 # Extract a list of obscodes from updated data
@@ -1960,7 +1960,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
 
 def main(argv):
-    imbotversion = '1.0.1'
+    imbotversion = '1.0.2'
     checkrange = 0 #3 # 3 hours
     statusmsg = {}
     obslist = []
