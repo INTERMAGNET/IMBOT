@@ -25,17 +25,21 @@ PREREQUISITES:
 
 APPLICATION:
 
-  update analysis.sh and follow instructions given in this bash file
+  $PYTHON $APP -s $MINDIR -d $DESTINATION -t $TMPDIR -m $MEMORY -n /etc/martas/telegram.cfg -e $CFGDIR -q $QUIETDAYLIST -p $OBSTESTLIST -o $OBSLIST
 
+  Options:
+      if OBStestlist is given:
+          if obs in testobslist:
+             -> full reports will be send to referee, obs and admin (refereelist_minute)
+          if not :
+             -> reports will be send  to managers from (mailinglist_minute)
+      if not given:
+          -> full reports will be send to referee, obs and admin (refereelist_minute)
+      
+      if OBSLIST:
+          -> only these obs will be analyzed
+          -> if REFREE is contained, then all all obs listes in refereelist_minute will be used
 
-TODO:
- - Submission formats and compression are highly variable. Although only two general underlying formats have been used, various different packing/archiving routines are used. 
-
- - Detailed instructions for submitters
-    -> only single level in compressed files
-
- - write a manual with detailed instructions also for test runs
-   -> if debug is choosen, mails should be send only to admin, no memory, etc 
 """
 
 # Local reference for development purposes
@@ -1892,14 +1896,17 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     if debug:
                         print ("  Joined Mails", email)
                         print ("  -> currently only used for selected. Other mails only send to leon")
-                    if para.get('obscode').upper() in testobslist: #or not testobslist
-                        print ("  Selected observatory is part of the 'productive' list")
-                        print ("   - > emails will be send to referee, submitters and manager")
-                        maildict['To'] = email
+                    if len(testobslist) > 0:
+                        if para.get('obscode').upper() in testobslist: #or not testobslist
+                            print ("  Selected observatory is part of the 'productive' list")
+                            print ("   - > emails will be send to referee, submitters and manager")
+                            maildict['To'] = email
+                        else:
+                            print ("  Selected observatory is NOT part of the 'productive' list")
+                            print ("   - > emails will be send to IMBOT managers only")
+                            maildict['To'] = managermail
                     else:
-                        print ("  Selected observatory is NOT part of the 'productive' list")
-                        print ("   - > emails will be send to IMBOT managers only")
-                        maildict['To'] = managermail
+                        maildict['To'] = email
                     #print ("MAILDICT", maildict)
                     #OVERWRITE FOR TESTING purposes
                     #print (" !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
