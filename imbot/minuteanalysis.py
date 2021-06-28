@@ -1967,7 +1967,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
 
 def main(argv):
-    imbotversion = '1.0.2'
+    imbotversion = '1.0.3'
     checkrange = 0 #3 # 3 hours
     statusmsg = {}
     obslist = []
@@ -1983,7 +1983,8 @@ def main(argv):
     manager = ['ro.leonhardt@googlemail.com','jreda@igf.edu.pl','hom@ngs.ru','tero.raita@sgo.fi','heumez@ipgp.fr','Andrew.Lewis@ga.gov.au']
     memory='/tmp/secondanalysis_memory.json'
     tmpdir="/tmp"
-    testobslist=['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
+    #testobslist=['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
+    testobslist=[]
     analysistype = 'minuteanalysis'
 
     debug=False
