@@ -80,15 +80,16 @@ IMPORTANT: if mailaddresses are provided within mailinglist_minute.txt for a spe
    Running for a specifc observatory -> notification only for IMBOT admin
    (debugging, testing new specifications and methods)
    modify analysisminuteYEAR.sh:
-   OBSTESTLIST="IAGACODE"  e.g. OBSTESTLIST="WIC"
+   OBSTESTLIST=""
    OBSLIST="IAGACODE"      e.g. OBSLIST="WIC"
    add debug=True in minuteanalysis.py line
 
-3. Selected testmode:
+3. Selected testmode:  TODO
    Testing for a specific observatory (only managermail)
    modify analysisminuteYEAR.sh:
-   OBSTESTLIST=""  e.g. OBSTESTLIST=""
-   OBSLIST="IAGACODE"      e.g. OBSLIST="WIC"
+   OBSTESTLIST="WIC"
+   OBSLIST="WIC,CLF"      e.g. OBSLIST="WIC"
+   -> only managerreport for CLF, full report for WIC
 
 4. Partial testmode:
    Running for all observatories listed in refereelist_minute (full report for selected)
@@ -101,6 +102,9 @@ IMPORTANT: if mailaddresses are provided within mailinglist_minute.txt for a spe
 5. Full testmode:
    Running for all observatories -> notification only for IMBOT manager
    (to be used for major test runs) e.g. one-second test run
+   OBSTESTLIST="ABC,BCD,CBA"
+   OBSLIST=""
+   -> Full reports only send to ABC,BCD,CBA ; OBSTESTLIST should not be empty
 
 6. Selected productive mode: 
    specific obs list -> referee, submitter, manager mail
