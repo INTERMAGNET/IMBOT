@@ -73,7 +73,7 @@ try:
     from email.mime.text import MIMEText
     from email.utils import COMMASPACE, formatdate
     from email import encoders
-    from smtplib import SMTP
+    from smtplib import SMTP, SMTP_SSL
 except:
     pass
 
@@ -127,25 +127,27 @@ def sendmail(dic):
     # TODO log if file does not exist
     for f in files:
         part = MIMEBase('application', "octet-stream")
-        if not os.path.isfile(f):
-            print (" File {} not existing".format(f))
         part.set_payload( open(f,"rb").read() )
         encoders.encode_base64(part)
         part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(f))
         msg.attach(part)
 
-    # the server need to be specified in python 3.7 and 3.8
-    smtp = SMTP(dic.get('smtpserver'))
+    # seems as if server name needs to be specified in py3.7 and 3.8, should work in older versions as well
+    if port in [465]:
+        smtp = SMTP_SSL(dic.get('smtpserver'))
+    else:
+        smtp = SMTP(dic.get('smtpserver'))
     smtp.set_debuglevel(False)
     if port:
         smtp.connect(dic.get('smtpserver'), port)
     else:
         smtp.connect(dic.get('smtpserver'))
     smtp.ehlo()
-    if port == 587:
+    if port in [587]:
+        print ("Using tls")
         smtp.starttls()
     smtp.ehlo()
-    if user:
+    if user and not user in ['None','False']:
         smtp.login(user, dic.get('pwd'))
     smtp.sendmail(send_from, send_to, msg.as_string())
     smtp.close()
@@ -260,7 +262,7 @@ class martaslog(object):
             mailmsg = ''
             for elem in dictionary:
                 mailmsg += "{}: {}\n".format(elem, dictionary[elem])
-            from core import acquisitionsupport as acs
+            import acquisitionsupport as acs
             self.email = acs.GetConf(self.email.get('config'))
             #print(self.email)
             self.email['Text'] = mailmsg

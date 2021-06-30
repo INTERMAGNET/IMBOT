@@ -1234,6 +1234,8 @@ def GetDataChecker(obscode, path="/path/to/refereelist.cfg"):
         """
         DESCRIPTION
             determine a data checker for the Observatory defined by obscode.
+            Please note that only one data checker can be asigned for each record.
+            The last one will be chosen.
         PARAMETER:
             path ideally should be the same as for mail.cfg
         RETURNS:
@@ -1250,6 +1252,9 @@ def GetDataChecker(obscode, path="/path/to/refereelist.cfg"):
         for mail in checkdict:
             subdict = checkdict[mail]
             obslist = subdict.get('obslist',[])
+            if not isinstance(obslist,list):
+                obslist = [obslist]
+
             if obscode in obslist:
                 checker = subdict.get('name','')
                 checkermail = mail
@@ -1260,6 +1265,38 @@ def GetDataChecker(obscode, path="/path/to/refereelist.cfg"):
             return checker, checkermail
         else:
             return fallback, fallbackmail
+
+
+def GetObsListFromChecker(obslist=[],path="/path/to/refereelist.cfg"):
+        """
+        DESCRIPTION
+            determine a data checker for the Observatory defined by obscode.
+        PARAMETER:
+            path ideally should be the same as for mail.cfg
+        RETURNS:
+            two strings, a name and a email address
+        """
+        cleanobslist = [el for el in obslist if not el in ['REFEREE','referee']]
+        fullobslist = []
+        if not os.path.isfile(path):
+            print ("DID NOT FIND REFEREE CONFIGURATION FILE")
+            return []
+        checkdict = GetConf(path)
+        for mail in checkdict:
+            subdict = checkdict[mail]
+            obslist = subdict.get('obslist',[])
+            if not isinstance(obslist,list):
+                obslist = [obslist]
+            if len(obslist) > 0:
+                if len(fullobslist) > 0:
+                    fullobslist.extend(obslist)
+                else: 
+                    fullobslist = obslist
+        if len(cleanobslist) > 0:
+            fullobslist.extend(cleanobslist)
+
+        return list(set(fullobslist))
+
 
 
 def GetMailFromList(obscode, path="/path/to/mailinglist.cfg"):
@@ -1450,7 +1487,7 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
 
 
 def main(argv):
-    imbotversion = '1.0.2'
+    imbotversion = '1.0.3'
     checkrange = 3 # 3 hours
     statusmsg = {}
     obslist = []
@@ -1737,6 +1774,7 @@ def main(argv):
                 email, managermail = ObtainEmailReceivers(loggingdict, para.get('obscode'), os.path.join(pathemails,"mailinglist.cfg"), referee, debug=debug)
                 print ("   -> sending to {}".format(email))
                 
+                """
                 # if alternative email contacts are provided, then use those
                 # read file with -e emails option - name: mailinglist.cfg
                 # BOU  :  newcontact@usgs.org
@@ -1765,6 +1803,7 @@ def main(argv):
                     for man in manager:
                         emails.append(man)
                     email = ",".join(emails)
+                """
 
                 print ("---------------------------- ")
                 print ("MAILTEXT for {} to be send to {}:\n{}".format(para.get('obscode'), email, mailtext))
@@ -1773,27 +1812,40 @@ def main(argv):
                 #testobslist = ['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
                 # Send out emails
                 # -----------
-                if email:
-                    print ("Using mail configuration in ", mailcfg)
+                if email and mailcfg:
+                    if debug:
+                        print ("  Using mail configuration in ", mailcfg)
                     maildict = ReadMetaData(mailcfg, filename="mail.cfg")
-                    attachfilelist = glob.glob(os.path.join(destinationpath,"*.txt"))
-                    print ("ATTACHMENT looks like:", attachfilelist)
-                    print (" -> for file sending", ",".join(attachfilelist))
+                    attachfilelist = loggingdict.get('Attachment')
+                    if debug:
+                        print ("  ATTACHMENT looks like:", attachfilelist)
+                        print ("   -> for file sending", ",".join(attachfilelist))
                     maildict['Attach'] = ",".join(attachfilelist)
                     maildict['Text'] = mailtext
                     maildict['Subject'] = '{}IMBOT one-second analysis for {}'.format(submissionstatus,para.get('obscode'))
                     maildict['From'] = 'roman_leonhardt@web.de'
-                    print ("Joined Mails", email)
-                    print ("-> currently only used for selected. Other mails only send to leon")
-                    if para.get('obscode').upper() in testobslist: #or not testobslist
-                        maildict['To'] = email
+                    if debug:
+                        print ("  Joined Mails", email)
+                        print ("  -> currently only used for selected. Other mails only send to leon")
+                    if len(testobslist) > 0:
+                        if para.get('obscode').upper() in testobslist: #or not testobslist
+                            print ("  Selected observatory is part of the 'productive' list")
+                            print ("   - > emails will be send to referee, submitters and manager")
+                            maildict['To'] = email
+                        else:
+                            print ("  Selected observatory is NOT part of the 'productive' list")
+                            print ("   - > emails will be send to IMBOT managers only")
+                            maildict['To'] = managermail
                     else:
-                        maildict['To'] = managermail
-                    print ("MAILDICT", maildict)
+                        maildict['To'] = email
+                    print ("  ... sending mail now")
                     sm(maildict)
+                    print (" -> DONE: mail and report send") 
                 else:
+                    print ("  Could not find mailconfiguration - skipping mail transfer")
                     #logdict['Not yet informed'].append(para.get('obscode'))
                     pass
+
                 mailname = os.path.join(destinationpath, "mail-to-send.txt")
                 with open(mailname, 'w') as out:
                     out.write(mailtext)

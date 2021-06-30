@@ -39,9 +39,99 @@ Besides the following Linux packages need to be installed:
 
         mkdir /home/user/IMANALYSIS/Datacheck
 
-6. If all modifications have been performed, then start a test run
+6. IMBOT-minute specific installations
 
-7. Add IMBOT jobs to crontab
+Install wine and add check1min.exe program.
+
+        sudo apt-get install wine
+
+Start an exe program to get wine to be initialized for "root".
+
+Create a data folder in drive_c
+
+        sudo mkdir /root/.wine/drive_c/daten
+
+Copy check1min into /root/.wine/drive_c/
+
+        sudo cp check1min.exe /root/.wine/drive_c/
+
+7. If all modifications have been performed, then start a test run
+
+8. Add IMBOT jobs to crontab
+
+
+## Updating IMBOT parameter on GITHUB
+
+When performed as listed above, then IMBOT parameters will periodically be cloned from GITHUB. IMBOT paremeters can be changed by all persons having access to this GITHUB repository. Particularly important are changes to mailinglists and refereelists.
+
+
+IMPORTANT: if mailaddresses are provided within mailinglist_minute.txt for a specific IMO, then these mailaddresses will replace any contacts as listed in the readme.imo file. 
+
+
+
+## Testing and running IMBOT
+
+
+### IMBOT-minute (and IMBOT-second soon)
+
+1. Travis CI mode:
+
+2. Debug mode: 
+   Running for a specifc observatory -> notification only for IMBOT admin
+   (debugging, testing new specifications and methods)
+   modify analysisminuteYEAR.sh:
+   OBSTESTLIST="IAGACODE"  e.g. OBSTESTLIST="WIC"
+   OBSLIST="IAGACODE"      e.g. OBSLIST="WIC"
+   add debug=True in minuteanalysis.py line
+
+3. Selected testmode:
+   Testing for a specific observatory (only managermail)
+   modify analysisminuteYEAR.sh:
+   OBSTESTLIST=""  e.g. OBSTESTLIST=""
+   OBSLIST="IAGACODE"      e.g. OBSLIST="WIC"
+
+4. Partial testmode:
+   Running for all observatories listed in refereelist_minute (full report for selected)
+   e.g. refereelist_minute contains ABC,BCD,CBA
+   OBSTESTLIST="ABC,BCD,CBA"
+   OBSLIST="REFEREE,WIC"
+   
+   -> full report for ABC,BCD,CBA; only managermail for all others in refereelist
+
+5. Full testmode:
+   Running for all observatories -> notification only for IMBOT manager
+   (to be used for major test runs) e.g. one-second test run
+
+6. Selected productive mode: 
+   specific obs list -> referee, submitter, manager mail
+
+   OBSTESTLIST=""
+   OBSLIST="IAGACODE"      e.g. OBSLIST="WIC"
+
+7. Productiv mode:
+   all obs in referee list -> referee, submitter, manager mail; no fallback
+   current minute state
+
+   OBSTESTLIST=""
+   OBSLIST="REFEREE,IAGACODE"      e.g. OBSLIST="REFEREE,WIC"
+
+8. Full productive mode:
+   all obs -> referee, submitter, manager mail; obs not in referee list -> fallback referee, submitter, manager
+   Running for all observatories making use of fallback e-mail in refereelist if obs not listed
+
+   OBSTESTLIST=""
+   OBSLIST=""
+   and remove options -p and -o from minuteanalysis.py line
+   (TODO: UNTESTED)
+
+9. Issues to be tested:
+   - if obscode and mailaddress is listed in mailinglist (alternative contacts):
+     do the alternative mails replace or extend the receiver list from readme.xxx
+     
+
+### IMBOT-second
+
+
 
 
 ## Application: Updating configuration and runtime script(s)
