@@ -58,6 +58,8 @@ from shutil import copyfile
 from dateutil.relativedelta import relativedelta
 import gc
 
+from imbotcore import *
+
 
 # Basic MARTAS Telegram logging configuration for IMBOT manager
 logpath = '/var/log/magpy/imbot.log'
@@ -1565,6 +1567,8 @@ def main(argv):
             quietdaylist = arg.split(',')
         elif opt in ("-o", "--observatories"):
             obslist = arg.replace(" ","").split(',')
+            if 'REFEREE' in obslist:
+                obslist = GetObsListFromChecker(obslist, os.path.join(pathemails,"refereelist_minute.cfg"))
             print (" OBSLIST provided: dealing only with {}".format(obslist))
         elif opt in ("-x", "--exclude"):
             excludeobs = arg.replace(" ","").split(',')
