@@ -309,19 +309,21 @@ def WriteMemory(memorypath, memdict):
         return True
 
 
-def ReadMemory(memorypath):
+def ReadMemory(memorypath,debug=False):
         """
         DESCRIPTION
              read memory
         """
         memdict = {}
         if os.path.isfile(memorypath):
-            print ("Reading memory: {}".format(memorypath))
+            if debug:
+                print ("Reading memory: {}".format(memorypath))
             with open(memorypath, 'r') as file:
                 memdict = json.load(file)
         else:
             print ("Memory path not found - please check (first run?)")
-        print ("Found in Memory: {}".format([el for el in memdict]))
+        if debug:
+            print ("Found in Memory: {}".format([el for el in memdict]))
         return memdict
 
 

@@ -40,23 +40,15 @@ from magpy.stream import *
 from martas import martaslog as ml
 from martas import sendmail as sm
 
+import telegram_send
+
 import os
 import glob
 import getopt
 import pwd
-import zipfile
-import tarfile
-from shutil import copyfile
-from dateutil.relativedelta import relativedelta
-import gc
 import re
 
 from imbotcore import *
-
-# Basic MARTAS Telegram logging configuration for IMBOT manager
-logpath = '/var/log/magpy/imbot.log'
-notifictaion = {}
-name = "IMBOTreport"
 
 
 def markdown_table(head,body):
@@ -64,7 +56,7 @@ def markdown_table(head,body):
     #body = sort(body)
     table = " | ".join(head)
     table += "\n"
-    table += " | ".join(['-------' for el in head])
+    table += " | ".join(['-----' for el in head])
     table += "\n"
     for line in body:
         line = [str(el) for el in line]
@@ -123,7 +115,7 @@ def create_result_table(memory, tformat='markdown',style='simple', logpath=''):
 
     return table 
 
-def create_runtime_table(tformat='markdown',style='simple', logpath=''):
+def create_runtime_table(tformat='markdown',style='simple', logpath='',debug=False):
     """
     DESCRIPTION
         scan last log files for each year and whether they are successful
@@ -131,16 +123,30 @@ def create_runtime_table(tformat='markdown',style='simple', logpath=''):
     table = ''
     
     if style == 'simple':
-        head = ['Year', 'lastrun', 'success']
+        head = ['year', 'lastrun', 'success']
 
-    """
+    body = []
     logfile = os.path.join(logpath,'last*analysis*')
     for name in glob.glob(logfile):
         logdict = {}
-        year = re.findall(r'\d+', name)
+        yearl = re.findall(r'\d+', name)
+        if len(yearl) > 0:
+            year = int(yearl[-1])
         # get creation data
+        stat=os.stat(name)
+        mtime=stat.st_mtime
+        ctime=stat.st_ctime
+        mdate = datetime.utcfromtimestamp(float(mtime))
+        stmdate = datetime.strftime(mdate,"%Y-%m-%dT%H:%M")
         # find SUCCESS in file
-    """
+        succ = 'No'
+        with open(name) as f:
+            if 'ANALYSIS SUCCESSFULLY FINISHED' in f.read():
+                succ = 'Yes'
+        body.append([year,stmdate,succ])
+
+    table = markdown_table(head,body)
+    return table
 
 def main(argv):
     quickreportversion = '1.0.0'
@@ -149,14 +155,15 @@ def main(argv):
     logpath = '/var/log/magpy'
     mailcfg = '/etc/martas'
     memory='/tmp/secondanalysis_memory.json'
+    telegramconf = "/etc/martas/telegram.cfg"
     job = 'obssummary'
 
     debug=False
 
     try:
-        opts, args = getopt.getopt(argv,"hm:l:D",["memory=","logpath=","debug=",])
+        opts, args = getopt.getopt(argv,"hm:l:j:t:D",["memory=","logpath=","job=","telegramconf=","debug=",])
     except getopt.GetoptError:
-        print ('quickreport.py -m <memory> -l <logpath> -j <job>')
+        print ('quickreport.py -m <memory> -l <logpath> -j <job> -j <telegramconf>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -179,13 +186,14 @@ def main(argv):
             print ('-l            : logpath with analysis data for obs')
             print ('              : i.e. if /srv/datacheck/2020/TAM/logdict.json')
             print ('              :      then logpath is /srv/datacheck/2020')
+            print ('-t            : telegram configuration path')
             print ('-------------------------------------')
             print ('Example of memory:')
             print ('-------------------------------------')
             print ('Application:')
             print ('-------------------------------------')
-            print ('- debug mode')
-            print ('python3 /home/leon/Software/IMBOT/imbot/quickreport.py -m /home/leon/Cloud/Test/IMBOTminute/analysetest.json -D')
+            print ('python3 /home/leon/Software/IMBOT/imbot/quickreport.py -m ~/analysis2020.json -l ~/Cloud/Test/IMBOTsecond/IMoutput/level')
+            print ('python3 /home/leon/Software/IMBOT/imbot/quickreport.py -m ~/analysis2020.json -l ~/Cloud/Test/IMBOTsecond/IMoutput/level')
             sys.exit()
         elif opt in ("-m", "--memory"):
             memory = os.path.abspath(arg)
@@ -193,6 +201,8 @@ def main(argv):
             obslogpath = os.path.abspath(arg)
         elif opt in ("-j", "--job"):
             job = arg
+        elif opt in ("-t", "--telegramconf"):
+            telegramconf = arg
         elif opt in ("-D", "--debug"):
             debug = True
 
@@ -201,10 +211,6 @@ def main(argv):
         print ("Basic code test - done")
         sys.exit(0)
     
-    if not os.path.exists(memory):
-        print ("Memory not existing")
-        sys.exit(0)
-
     if not tele == '':
         # ################################################
         #          Telegram Logging
@@ -215,18 +221,18 @@ def main(argv):
         telelogpath = os.path.join(logpath,analysistype,"telegram.log")
 
     if job == 'obssummary':
+        if not os.path.exists(memory):
+            print ("Memory not existing")
+            sys.exit(0)
         table = create_result_table(memory,logpath=obslogpath)
     elif job == 'runtime':
         table = create_runtime_table(logpath=obslogpath)
 
     print (table)
+    table = "```\n{}\n```".format(table)
+    if telegramconf:
+        telegram_send.send(messages=[table], conf=telegramconf, parse_mode="Markdown")
 
-    if not tele == '' and not debug:
-        martaslog = ml(logfile=telelogpath,receiver='telegram')
-        martaslog.telegram['config'] = tele
-        martaslog.msg(notification)
-
-    print ("-> quickreport SUCCESSFULLY FINISHED")
 
 
 if __name__ == "__main__":
