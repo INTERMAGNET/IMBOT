@@ -75,6 +75,7 @@ IMPORTANT: if mailaddresses are provided within mailinglist_minute.txt for a spe
 ### IMBOT-minute (and IMBOT-second soon)
 
 1. Travis CI mode:
+   python second(minute)analysis.py -D
 
 2. Debug mode: 
    Running for a specifc observatory -> notification only for IMBOT admin

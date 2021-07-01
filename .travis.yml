@@ -12,3 +12,4 @@ script:
   - python imbot/telegramnote.py
   - python imbot/martas.py
   - python imbot/secondanalysis.py -D
+  - python imbot/minuteanalysis.py -D

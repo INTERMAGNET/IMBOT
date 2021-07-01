@@ -2,11 +2,11 @@
 # coding=utf-8
 
 """
-MagPy - Analysis one second data files automatically
+IMBOT - automatic analysis of one minute data
 
 PREREQUISITES:
 
-  sudo pip3 install geomagpy==0.9.7
+  sudo pip3 install geomagpy>=1.0.1
   sudo pip3 install telegram_send
   sudo apt-get install curlftpfs
   sudo apt install p7zip-full p7zip-rar
@@ -22,23 +22,9 @@ PREREQUISITES:
    - test
    - update crontab
 
-
 APPLICATION:
 
   $PYTHON $APP -s $MINDIR -d $DESTINATION -t $TMPDIR -m $MEMORY -n /etc/martas/telegram.cfg -e $CFGDIR -q $QUIETDAYLIST -p $OBSTESTLIST -o $OBSLIST
-
-  Options:
-      if OBStestlist is given:
-          if obs in testobslist:
-             -> full reports will be send to referee, obs and admin (refereelist_minute)
-          if not :
-             -> reports will be send  to managers from (mailinglist_minute)
-      if not given:
-          -> full reports will be send to referee, obs and admin (refereelist_minute)
-      
-      if OBSLIST:
-          -> only these obs will be analyzed
-          -> if REFREE is contained, then all all obs listes in refereelist_minute will be used
 
 """
 
@@ -620,11 +606,13 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
                 # - perform MagPy basic read and content check, extract binary data
                 # -----------
+                print (" Running MagPy test ...")
                 data, loggingdict = MagPy_check1min(sourcepath,para.get('obscode'),logdict=loggingdict, updateinfo=updatedictionary, debug=debug)
                 readdict['Year'] = loggingdict.get('year',year)
 
                 # - perform check1min (dos) analysis  -> report will be attached to the mail
                 # -----------
+                print (" Running check1min ...")
                 loggingdict = DOS_check1min(sourcepath,para.get('obscode'),year=readdict.get('Year'),winepath=winepath,updateinfo=updatedictionary,logdict=loggingdict, debug=debug)
 
                 # Report
@@ -791,10 +779,10 @@ def main(argv):
             print ('evaluate one second data submissions to INTERMAGNET.')
             print ('')
             print ('')
-            print ('secondanalysis requires magpy >= 0.9.5.')
+            print ('minuteanalysis requires magpy >= 0.9.5.')
             print ('-------------------------------------')
             print ('Usage:')
-            print ('python3 secondanalysis.py -s <source> -d <destination> -t <temporary>')
+            print ('python3 minuteanalysis.py -s <source> -d <destination> -t <temporary>')
             print ('-------------------------------------')
             print ('Options:')
             print ('-s (required) : source path')
