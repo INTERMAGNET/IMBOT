@@ -318,9 +318,9 @@ def DOS_check1min(sourcepath, obscode, year=2020, winepath='/root/.wine',logdict
     curwd = os.getcwd()
     os.chdir(winepath)
 
-    cmd = 'WINEPREFIX="{}" /usr/bin/wine start check1min.exe C:\\\\daten\\\\{} {} {} C:\\\\daten\\\\{}\\\\{}report{}.txt'.format(winepath,obscode,obscode,year,obscode,obscode.lower(),year)
-    if debug:
-        cmd = '/usr/bin/wine start check1min.exe C:\\\\daten\\\\{} {} {} C:\\\\daten\\\\{}\\\\{}report{}.txt'.format(obscode,obscode,year,obscode,obscode.lower(),year)
+    #cmd = 'WINEPREFIX="{}" /usr/bin/wine start check1min.exe C:\\\\daten\\\\{} {} {} C:\\\\daten\\\\{}\\\\{}report{}.txt'.format(winepath,obscode,obscode,year,obscode,obscode.lower(),year)
+    #if debug:
+    cmd = '/usr/bin/wine start check1min.exe C:\\\\daten\\\\{} {} {} C:\\\\daten\\\\{}\\\\{}report{}.txt'.format(obscode,obscode,year,obscode,obscode.lower(),year)
     print (" Calling {}".format(cmd))
     import subprocess
     import time

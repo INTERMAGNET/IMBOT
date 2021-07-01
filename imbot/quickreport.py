@@ -134,15 +134,12 @@ def create_runtime_table(tformat='markdown',style='simple', logpath=''):
         head = ['Year', 'lastrun', 'success']
 
     """
-    logfile = os.path.join(logpath,'last*.txt')
-        for name in glob.glob(logfile):
-            logname = name
+    logfile = os.path.join(logpath,'last*analysis*')
+    for name in glob.glob(logfile):
         logdict = {}
-        lev = re.findall(r'\d+', logname)
-        if len(lev) > 0:
-            logdict['Level'] = int(re.findall(r'\d+', logname)[0])
-        else:
-            logdict['Level'] = ""
+        year = re.findall(r'\d+', name)
+        # get creation data
+        # find SUCCESS in file
     """
 
 def main(argv):
