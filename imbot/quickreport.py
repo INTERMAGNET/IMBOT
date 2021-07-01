@@ -84,7 +84,7 @@ def get_logdict(obscode, path=''):
         logdict = {}
         lev = re.findall(r'\d+', logname)
         if len(lev) > 0:
-            logdict['Level'] = int(re.findall(r'\d+', logname)[0])
+            logdict['Level'] = int(re.findall(r'\d+', logname)[-1])
         else:
             logdict['Level'] = ""
 
