@@ -283,10 +283,10 @@ def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecke
             maintext += "    READY for manual data checking\n\n"
 
         # TODO to be removed
-        maintext += "!! Please note: this is just a preliminary test of an automatic evaluation routine. The following text is fictional, ratings are NOT related to any decision of INTERMAGNET. Text and reports are suggestions to be reviewed by the INTERMAGNET data commitee. !!\n\n"
+        maintext += "!! Please note: this is just a preliminary test of an automatic evaluation routine. The following text is fictional, ratings are NOT related to any decision of INTERMAGNET. Text and reports are suggestions to be reviewed by the INTERMAGNET data committee. !!\n\n"
 
-        level0 = "Your data did not pass the automatic evaluation test. Please update your data submission.\nDetails can be found in the attached report. Please update your submission accordingly and perform a data check with checking tools provided by INTERMAGNET (link) before resubmission of your data set. If you need help please contact {}\n\n".format(nameofdatachecker)
-        level1 = "Congratulations! A basic data analysis indicates that your submission is ready for final evaluation by INTERMAGNET data checkers. So far all tests have been perfomed automatically. Please check the attached report for details.\n\nYour data set has been assigned to an INTERMAGNET data checker for evaluation.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all checks on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
+        level0 = "Your data did not pass the automatic evaluation test. Please update your data submission.\nDetails can be found in the attached report. Please update your submission accordingly and perform a data check with checking tools provided by INTERMAGNET (see links below) before re-submission of your data set. If you need help please contact {}\n\n".format(nameofdatachecker)
+        level1 = "Congratulations! A basic data analysis indicates that your submission is ready for final evaluation by INTERMAGNET data checkers. So far all tests have been performed automatically. Please check the attached check1min report for details.\n\nYour data set has been assigned to an INTERMAGNET data checker for evaluation.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all checks on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
         level2 = "Congratulations!\n\nYour data fulfills all requirements for a final review. A level 2 data product is already an excellent source for high resolution magnetic information. Your data set has been assigned to an INTERMAGNET data checker for final evaluation regarding data quality.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all check on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
 
         if int(level) == 0:
@@ -296,7 +296,7 @@ def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecke
         elif int(level) == 2:
             maintext += level2
 
-        maintext += "If you have any questions regarding the evalutation process please check out the general instructions (https://github.com/INTERMAGNET/IMBOT/blob/master/README.md) or contact the IMBOT manager.\n\n"
+        maintext += "If you have any questions regarding the evaluation process please check out/request the general instructions (https://github.com/INTERMAGNET/IMBOT/blob/master/README.md - currently available online only for the IM definitive data committee) or contact the IMBOT manager.\n\n"
         maintext += "\nSincerely,\n       IMBOT\n\n"
 
 
@@ -608,7 +608,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 updatestr = ''
                 obscode = para.get('obscode')
                 if obscode in updatelist:
-                    updatestr = 'Data UPDATE received: '
+                    updatestr = 'Submission UPDATE received: '
 
                 print (" Update string:", updatestr)
                 updatedictionary = {} #GetMetaUpdates()
@@ -680,7 +680,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                         print ("   -> for file sending", ",".join(attachfilelist))
                     maildict['Attach'] = ",".join(attachfilelist)
                     maildict['Text'] = mailtext
-                    maildict['Subject'] = '{}IMBOT one-minute analysis for {}'.format(updatestr,para.get('obscode'))
+                    maildict['Subject'] = '{}IMBOT one-minute analysis for {} {}'.format(updatestr,para.get('obscode'),readdict.get("Year"))
                     #### take FROM from mail.cfg 
                     if debug:
                         print ("  Joined Mails", email)

@@ -257,7 +257,7 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, debug=False):
             print ("  -> all receipients: {}".format(email))
             emails = []
             email = ''
-            print ("  Debug mode: Skipping all mail addresses and only sending to IMBOT administrator")
+            print ("  !! DEBUG mode: Skipping all mail addresses and only sending to IMBOT administrator !!")
             admin = GetMailFromList('admin', mailinglist)
             if not isinstance(admin, list):
                 admin = [admin]
@@ -337,7 +337,7 @@ def ReadMetaData(sourcepath, filename = "meta*.txt"):
         newhead = {}
         metafilelist = glob.glob(os.path.join(sourcepath,filename))
         #print (os.path.join(sourcepath,filename))
-        print ("Loading meta file:", metafilelist, os.path.join(sourcepath,filename))
+        print (" Loading meta file:", metafilelist, os.path.join(sourcepath,filename))
 
         if len(metafilelist) > 0:
             if os.path.isfile(metafilelist[0]):
