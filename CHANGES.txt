@@ -2,6 +2,33 @@
 # An automatic data checker for one second data.
 -------------------------------------------------
 
+####<1.0.3>, <2021-07-05> --
+
+1.0.3 general:
+    + full minute and second analysis
+    + configuration with separate scripts
+    + configuration parameters in separate repository
+    + full e-mail support for data suppliers, referees and managers
+
+1.0.3 fixed:
+    + Improved/Extended e-mail notifications
+    + Corrected some typos and spelling issues
+
+1.0.3 additions:
+    + added check1min program into the repository for better version control
+    + replace old check1min with version 1.71
+
+
+####<1.0.2>, <2021-04-25> --
+
+1.0.2 general:
+    + added minuteanalysis script
+
+1.0.2 fixed:
+    + Typos in email notifications and text
+
+
+
 ####<1.0.1>, <2021-01-14> --
 
 1.0.1 general:
