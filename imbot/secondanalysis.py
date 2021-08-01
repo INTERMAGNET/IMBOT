@@ -306,6 +306,10 @@ def DeltaFTest(data, logdict):
             f1text = "found independend"
             if scal=='f':
                 ftest = ftest.delta_f()
+                #TODO proper treatment of -S values in delta_f in MagPy
+                #quick and dirty workaround -> exclude large negative  values
+                ftest = ftest.extract('df',-15000,'>')
+                
 
             fmean, fstd = ftest.mean('df',std=True)
             logdict['delta F'] = "mean delta F of {:.3f} with a std of {:.3f}".format(fmean,fstd)
@@ -1088,7 +1092,7 @@ def main(argv):
     manager = ['ro.leonhardt@googlemail.com']
     memory='/tmp/secondanalysis_memory.json'
     tmpdir="/tmp"
-    testobslist=['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
+    #testobslist=['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
     debug=False
 
     try:
