@@ -54,6 +54,12 @@ Create a data folder in drive_c
 Copy check1min into /root/.wine/drive_c/
 
         sudo cp check1min.exe /root/.wine/drive_c/
+        
+IMPORTANT: wine (x86 application) cannot be easily run on ARM processors (e.g. Raspberry):
+
+The basic problem is that wine requires a x86 environment and not ARM. Possible solutions: us a 
+x86 emulater... . Anyway it is much better just to use another x86 single board PC.
+        
 
 7. If all modifications have been performed, then start a test run
 
