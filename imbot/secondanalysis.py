@@ -1094,6 +1094,7 @@ def main(argv):
     tmpdir="/tmp"
     #testobslist=['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
     debug=False
+    testobslist = []
 
     try:
         opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:e:l:c:p:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutesource=","emails=","logpath=","mailcfg=","testobslist=","debug=",])
@@ -1157,7 +1158,7 @@ def main(argv):
         elif opt in ("-o", "--observatories"):
             obslist = arg.replace(" ","").split(',')
             if 'REFEREE' in obslist:
-                obslist = GetObsListFromChecker(obslist, os.path.join(pathemails,"refereelist_minute.cfg"))
+                obslist = GetObsListFromChecker(obslist, os.path.join(pathemails,"refereelist.cfg"))
             print (" OBSLIST provided: dealing only with {}".format(obslist))
         elif opt in ("-x", "--exclude"):
             excludeobs = arg.replace(" ","").split(',')
