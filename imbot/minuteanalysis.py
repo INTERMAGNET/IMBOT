@@ -268,8 +268,8 @@ def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecke
         else:
             maintext += "    READY for manual data checking\n\n"
 
-        # TODO to be removed
-        maintext += "!! Please note: this is just a preliminary test of an automatic evaluation routine. The following text is fictional, ratings are NOT related to any decision of INTERMAGNET. Text and reports are suggestions to be reviewed by the INTERMAGNET data committee. !!\n\n"
+        # TODO to be removed -> Done
+        #maintext += "!! Please note: this is just a preliminary test of an automatic evaluation routine. The following text is fictional, ratings are NOT related to any decision of INTERMAGNET. Text and reports are suggestions to be reviewed by the INTERMAGNET data committee. !!\n\n"
 
         level0 = "Your data did not pass the automatic evaluation test. Please update your data submission.\nDetails can be found in the attached report. Please update your submission accordingly and perform a data check with checking tools provided by INTERMAGNET (see links below) before re-submission of your data set. If you need help please contact {}\n\n".format(nameofdatachecker)
         level1 = "Congratulations! A basic data analysis indicates that your submission is ready for final evaluation by INTERMAGNET data checkers. So far all tests have been performed automatically. Please check the attached check1min report for details.\n\nYour data set has been assigned to an INTERMAGNET data checker for evaluation.\nYour data checker is {}.\nPlease note that INTERMAGNET data checkers perform all checks on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise.\n\n".format(nameofdatachecker)
