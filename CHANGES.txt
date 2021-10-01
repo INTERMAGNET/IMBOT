@@ -9,6 +9,7 @@
     + configuration with separate scripts
     + configuration parameters in separate repository
     + full e-mail support for data suppliers, referees and managers
+    + one-minute mails without "preliminary" notification 
 
 1.0.3 fixed:
     + Improved/Extended e-mail notifications
