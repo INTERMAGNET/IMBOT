@@ -47,6 +47,9 @@ Install wine and add check1min.exe program.
 
 Start an exe program to get wine to be initialized for "root".
 
+        cd /home/user/Software/IMBOT/check1min_ver171_for_IMBOT/
+        sudo wine heck1min.exe
+
 Create a data folder in drive_c
 
         sudo mkdir /root/.wine/drive_c/daten
