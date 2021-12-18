@@ -22,6 +22,14 @@ PREREQUISITES:
    - test
    - update crontab
 
+DESCRIPTION:
+   IMBOT is performing data checks on data products submitted to INTERMAGNET. Currently supported are 
+   one minute and one second submission. Principally, IMBOT analyses contents of directories, containing 
+   directory names with Observatory codes. A summary with a dictionary of file types, modification times, etc
+   will be stored in a local memory file. An analysis is triggered if by comparison of two summaries, usually
+   a new one with a memory of a previous run, an analysis trigger is found i.e. not yet analyzed, modified
+
+
 APPLICATION:
 
   $PYTHON $APP -s $MINDIR -d $DESTINATION -t $TMPDIR -m $MEMORY -n /etc/martas/telegram.cfg -e $CFGDIR -q $QUIETDAYLIST -p $OBSTESTLIST -o $OBSLIST
@@ -47,6 +55,7 @@ import pwd
 import zipfile
 import tarfile
 from shutil import copyfile
+import filecmp
 from dateutil.relativedelta import relativedelta
 import gc
 
@@ -55,36 +64,99 @@ from imbotcore import *
 # Basic MARTAS Telegram logging configuration for IMBOT manager
 logpath = '/var/log/magpy/imbot.log'
 notifictaion = {}
-name = "IMBOT"
+name = "IMBOTmin"
+
+"""
+ run GetGINDirectoryInformation(sourcepath, checkrange = 2, obslist = [],excludeobs=[]) also for step2 and step3.
+  use obslist of earlier step1 run
+ 
+            ** NEW Version 1.0.4**
+            - It will also try to access the STEP2 and 3 directory
+              If files have been moved to step2 - mail content is changed
+              If files are existing in step3 they are finished
+            ** NEW Version 1.0.4**
+"""
 
 
-def GetUploadMinuteInformation(sourcepath, checkrange = 2, obslist = [],excludeobs=[]):
+def ConverTime2LocationDirectory(sourcepath, destinationpath, debug=False):
+    """
+    DESCRIPTION:
+        reads a seimsic year-month directory structure to a year-obscode structure
+        and copies all yet non-existing files in the new local structure
+    VARIABLES:
+        sourcepath : string : the base path of the i.e. my/path/step3/2020
+        destination : string : the base path of the new directory i.e. my/path/step3new/mag2020
+    """
+    for root, dirs, files in os.walk(sourcepath):
+        level = root.replace(sourcepath, '').count(os.sep)
+        if not dirs and files:  #asume we reached the final directory if there are no further subdirectories but files 
+            # new directory name is defined from first three characters of filename
+            for file in files:
+                dirname =  file[:3].upper()
+                dstpath = os.path.join(destinationpath,dirname)
+                dst = os.path.join(destinationpath,dirname,file)
+                src = os.path.join(root,file)
+                if not os.path.exists(dstpath):
+                    if not debug:
+                        print ("ConverTime2LocationDirectory: Creating new directory: {}".format(dstpath))
+                        os.makedirs(dstpath)
+                    else:
+                        print ("ConverTime2LocationDirectory DEBUG: would create destination path {}".format(dstpath))
+                if not os.path.exists(dst) or not filecmp.cmp(src, dst):
+                    if not debug:
+                        print ("ConverTime2LocationDirectory: copying {} to {}".format(src,dst))
+                        copyfile(src, dst)
+                    else:
+                        print ("ConverTime2LocationDirectory DEBUG: would copy {} to {}".format(src,dst))
+                
+
+def GetGINDirectoryInformation(sourcepath, flag=None, checkrange=2, obslist=[],excludeobs=[], debug=False):
         """
         DESCRIPTION:
             Method will check directory structure of the STEP1 one second directory
             It will extract directory, amount of files, filetype, and last modification date
+            ** NEW Version 1.0.4**
+            - modified files will be logged 
+            - test environment for this method
+            - would it not be better to use obscode as key and root path as value?
+            - added flag (can be step1, step2, step3)
+            - new name: GetGINDirectoryInformation
+            ** NEW Version 1.0.4**
+        RETURN:
+            storage   DICT  a dictionary with key root path (.../WIC) and values {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode} ** NEW Version 1.0.4** 'moddict': {file1 : modtime1, file2 : modtime2, ...} 
+            logdict   DICT 
+        
         APPLICTAION:
-            to check step 1 one second directory
+            to check step 1 one second directory for new or modified data sources
             Suggested technique for updating previously submitted and updated step10,level1, and level2 data:
             Data passing all level0 clearance is moved to a new path (raw: step1, level1-3: level)
             --- extract level information from directory:
             --- thus add a file called " levelx.txt" with the highest reached level after each treatment, add a asterix for data awaiting a check
             This way, the same method can also be applied to the level directory
+        TEST:
+            $ mount sorcedict
+            $ python3
+            >>> import minuteanalysis as ma
+            >>> storage, log = ma.GetGINDirectoryInformation(sourcepath,checkrange=2,obslist=obslist,excludeobs=[],debug=True)
         """
-        print ("Running - getting upload information")
-        print (" for observatories: {}".format(obslist))
+        print ("Running directory information analysis")
+        if debug:
+            print (" for observatories: {}".format(obslist))
         storage = {}
         logdict = {}
+        obscode = 'None'
         for root, dirs, files in os.walk(sourcepath):
           level = root.replace(sourcepath, '').count(os.sep)
           if (len(obslist) > 0 and root.replace(sourcepath, '')[1:4] in obslist) or len(obslist) == 0:
             if (len(excludeobs) > 0 and not root.replace(sourcepath, '')[1:4] in excludeobs) or len(excludeobs) == 0:
               if level == 1:
-                print ("Found directory:", root)
+                print (" Found level 1 directory: {}".format(root))
                 # append root, and ctime of youngest file in directory
                 timelist = []
                 extlist = []
                 obscode = root.replace(sourcepath, '')[1:4]
+                obscode = obscode.upper()
+                moddict = {}
                 for f in files:
                     try:
                         stat=os.stat(os.path.join(root, f))
@@ -93,162 +165,84 @@ def GetUploadMinuteInformation(sourcepath, checkrange = 2, obslist = [],excludeo
                         ext = os.path.splitext(f)[1]
                         timelist.append(mtime)
                         extlist.append(ext)
+                        moddict[f] = mtime
                     except:
-                        logdict[root] = "Failed to extract mtimes"
+                        logdict[obscode] = "Failed to extract mtimes"
                 if len(timelist) > 0:
                     youngest = max(timelist)
-                    print (" Last modified : {} ; checking data older than {}".format(datetime.utcfromtimestamp(youngest), datetime.utcnow()-timedelta(hours=checkrange)))
+                    if debug:
+                        print ("  -> youngest file: {}".format(youngest))
+                    print ("  -> last modified : {} ; checking data older than {}".format(datetime.utcfromtimestamp(youngest), datetime.utcnow()-timedelta(hours=checkrange)))
                     # only if latest file is at least "checkrange" hours old
                     if datetime.utcfromtimestamp(youngest) < datetime.utcnow()-timedelta(hours=checkrange):
                         # check file extensions ... and amount of files (zipped, cdf, sec)
                         # firstly remove txt, par and md from list (meta.txt contain updated parameters)
-                        print (extlist)
+                        if debug:
+                            print ("  -> extensions: {}".format(extlist))
                         extlist = [el for el in extlist if not el in ['.txt', '.md']]
                         amount = len(files)
                         if len(extlist) > 0:
                             typ = max(extlist,key=extlist.count)
                             if typ in ['.zip', '.gz', '.tgz', '.tar.gz', '.tar', '.cdf', '.sec']:
-                                parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode}
-                                storage[root] = parameter
+                                parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode, 'rootdir': root, 'flag': flag, 'moddict': moddict}
+                                storage[obscode] = parameter
                             elif typ in ['.min', '.bin', '.{}'.format(obscode.lower()), '.blv', '.BIN', '.BLV', '.{}'.format(obscode.upper())]:
-                                parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode}
-                                storage[root] = parameter
+                                parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode, 'rootdir': root, 'flag': flag, 'moddict': moddict}
+                                storage[obscode] = parameter
                             else:
-                                logdict[root] = "Found unexpected data type '{}'".format(typ)
+                                logdict[obscode] = "Found unexpected data type '{}'".format(typ)
                         else:
-                            logdict[root] = "Directory existing - but no files found"
+                            logdict[obscode] = "Directory existing - but no files found"
                     else:
-                        logdict[root] = "Uploaded recently - eventually not finished"
+                        logdict[obscode] = "Uploaded recently - eventually not finished"
               elif level > 1:
-                logdict[root] = "Found subdirectories - ignoring this folder"
+                logdict[obscode] = "Found subdirectories - ignoring this folder"
 
         return storage, logdict
 
-### ####################################
-### MagPy Testing methods - one-second 
-### ####################################
 
-def DeltaFTest(data, logdict):
+
+def GetNewInputs(memory, newdict, simple=False, notification={}, notificationkey='', debug=False):
         """
         DESCRIPTION
-            reading F values in file, analyzing independency and delta F variaton
+            will return a dictionary with key/value pairs from dir analysis
+            which are not in memory. 
+             simple only compare keys
+        TESTING:
+            mem = ma.ReadMemory('/home/leon/Tmp/Mag2020/mem.json')
+            new, note = GetNewInputs(mem,storage)
         """
-        issuedict = {}
-        warningdict = {}
-        issuedict=logdict.get('Issues',{})
-        warningdict=logdict.get('Warnings',{})
-        fcol = data._get_column('f')
-        dfcol = data._get_column('df')
-        fmean = 99
-        fstd = 99
-        if len(fcol) == 0 and len(dfcol) == 0:
-            print ("No F or dF values found")
-            logdict['F'] = "None"
-            logdict['delta F'] = "None"
-        else:
-            f1text = 'found f-col - problem -'
-            scal=''
-            if len(fcol) > 0:
-                scal = 'f'
-            elif len(dfcol) > 0:
-                scal = 'df'
-            ftest = data.copy()
-            ftest = ftest._drop_nans(scal)
-            fsamprate = ftest.samplingrate()
-            f1text = "found independend"
-            if scal=='f':
-                ftest = ftest.delta_f()
+        # newly uploaded
+        newlist = []
+        updatelist = []
+        valuelist = []
+        out = {}
+        mod = {}
+        for key, value in newdict.items():
+            if not key in memory:
+                newlist.append(key)
+                out[key] = value
+            elif value != memory[key] and not simple:
+                memval = memory[key].get('moddict')
+                moddict = value.get('moddict')
+                changed = {k:v for k,v in moddict.items() if v != memval[k]} 
+                updatelist.append(key)
+                mod[key] = changed
+                out[key] = value
+            else:
+                valuelist.append(key)
+        if not simple:
+            notification['New Uploads'] = newlist
+            notification['Updated data'] = updatelist
+            notification['Modified data'] = mod
+        if simple and key:
+            notification[notificationkey] = valuelist
 
-            fmean, fstd = ftest.mean('df',std=True)
-            logdict['delta F'] = "mean delta F of {:.3f} with a std of {:.3f}".format(fmean,fstd)
-            if np.abs(fmean) >= 1.0:
-                warningdict['F'] = 'mean delta F exceeds 1 nT'
-            if fstd >= 3.0:
-                issuedict['F'] = 'dF/G shows large scatter about mean'
-            if np.abs(fmean) < 0.01 and fstd < 0.01:
-                f1text = 'found'   # eventually not-independent
-            if np.abs(fmean) < 0.001 and fstd < 0.001:
-                f1text = 'found not-independend'
+        if debug:
+            print ("Out dictionary:", out)
+            print ("Notification:", notification)
 
-            f2text = "{} {} with sampling period: {} sec\n".format(f1text,scal, fsamprate)
-            logdict['F'] = f2text
-
-        logdict['Issues'] = issuedict
-        logdict['Warnings'] = warningdict
-
-        return logdict
-
-
-def GetDayPSD(stream, comp):
-        dt = stream.get_sampling_period()*24.*3600.
-        t = np.asarray(stream._get_column('time'))
-        val = np.asarray(stream._get_column(comp))
-        mint = np.min(t)
-        tnew, valnew = [],[]
-        nfft = int(nearestPow2(len(t)))
-        if nfft > len(t):
-            nfft = int(nearestPow2(len(t) / 2.0))
-
-        for idx, elem in enumerate(val):
-            if not isnan(elem):
-                tnew.append((t[idx]-mint)*24.*3600.)
-                valnew.append(elem)
-
-        tnew = np.asarray(tnew)
-        valnew = np.asarray(valnew)
-
-        psdm = mlab.psd(valnew, nfft, 1/dt)
-        asdm = np.sqrt(psdm[0])
-        freqm = psdm[1]
-
-        return (psdm, asdm, freqm)
-
-
-def PowerAnalysis(dailystreamlist, readdict, period=10.):
-        """
-        DESCRIPTION
-            very simple noiselevel analysis
-            calculates mean noise level below a certain threshold period (e.g. 10sec)
-            from each daily stream
-        RETURNS
-            dictionary input at "Noiselevel" containing the arithmetic mean of all noiselevels  
-            dictionary input at "NoiselevelStdDeviation" containing the StandardDeviation of all noiselevels  
-        """
-        print ("Running Power Analysis for {} records".format(len(dailystreamlist)))
-        if len(dailystreamlist) > 0:
-            noiselevellist = []
-            failedlist = [0]
-            for daystream in dailystreamlist:
-                dayst = DataStream()
-                dayst.ndarray = daystream
-                #print (daystream, dayst.length()[0])
-
-                if dayst.length()[0]>0:
-                    try:
-                        #print( "getting power") 
-                        (psdm, asdm, freqm) = GetDayPSD(dayst, 'x')
-                        #print( "getting power 2", len(asdm))
-                        asdmar = np.asarray(asdm)
-                        idx = (np.abs(freqm - (1./period))).argmin()   # for testing purpose the noise level is calculated between nyquist and 10 sec
-                        #print( "getting power 3", idx)
-                        noiselevel = np.mean(asdmar[idx:])
-                        #print( "getting power 4", noiselevel)
-                        noiselevellist.append(noiselevel)
-                    except:
-                        failedlist.append(1)
-            #print ("NOISELIST", noiselevellist)
-            try:
-                readdict['Noiselevel'] = np.mean(np.asarray(noiselevellist))
-            except:
-                pass
-            if len(failedlist) > 1:
-                readdict['Failed noiselevel determinations'] = np.sum(np.asarray(failedlist))
-            try:
-                readdict['NoiselevelStdDeviation'] = np.std(np.asarray(noiselevellist))
-            except:
-                readdict['NoiselevelStdDeviation'] = 0.0
-
-        return readdict
+        return out,notification
 
 
 ### ####################################
@@ -256,9 +250,25 @@ def PowerAnalysis(dailystreamlist, readdict, period=10.):
 ### ####################################
 
 
-def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max Mustermann"):
+def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecker="Max Mustermann", notification={}):
 
-        maintext =  "Dear data submitter,\n\nyou receive the following information as your e-mail address is connected to submissions of geomagnetic data products from {} observatory.\nYour one-minute data submission for {} has been automatically evaluated by IMBOT, an automatic data checker of INTERMAGNET.\n\nThe evaluation process resulted in\n\n".format(obscode, year)
+        updatelist = notification.get('Updated data',[])
+        moddict = notification.get('Modified data',{})
+        step2list = notification.get('Reached step2',[])
+        print ("ModDict", moddict)
+        print ("step2list", step2list)
+        modstr = ''
+        step2str = ''
+        if 'obscode' in updatelist:
+            step2str = '\n\nPlease note that this submission has already been moved to STEP 2.'
+        if moddict.get(obscode,None):
+            filedic = moddict.get(obscode)
+            modstr = ",".join([key for key in filedic])
+
+        if obscode in updatelist:
+            maintext =  "Dear data submitter,\n\nyou receive the following information as your e-mail address is connected to submissions of geomagnetic data products from {} observatory.\nYour one-minute data submission for {} has been updated within the step1 directory.\n The following files have been modified or newly uploaded:\n {}{}\n\nSuch updates automatically trigger a new evaluation by IMBOT, an automatic data checker of INTERMAGNET.\n\nThe evaluation process resulted in\n\n".format(obscode, year, modstr, step2str)
+        else:
+            maintext =  "Dear data submitter,\n\nyou receive the following information as your e-mail address is connected to submissions of geomagnetic data products from {} observatory.\nYour one-minute data submission for {} has been automatically evaluated by IMBOT, an automatic data checker of INTERMAGNET.\n\nThe evaluation process resulted in\n\n".format(obscode, year)
 
 
         maintext += "LEVEL {}".format(level)
@@ -471,7 +481,8 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
     except:
         pass
 
-    print (data.length())
+    if debug:
+        print ("Data length:", data.length())
 
     #============== Checking W01..W16 headers in IAF files ================
     """
@@ -561,12 +572,13 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
         reportdict = {}
         #readdict = {}
         #loggingdict = {}
-        for element in pathsdict:
+        for obscode in pathsdict:
                 print ("-------------------------------------------")
-                print ("Starting analysis for {}".format(element))
+                print ("Starting analysis for {}".format(obscode))
                 #try
                 readdict = {}
-                para = pathsdict.get(element)
+                para = pathsdict.get(obscode)
+                
                 dailystreamlist = []
                 loggingdict = {}
                 loggingdict['Issues'] = []
@@ -583,20 +595,14 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 readdict['Destinationpath'] = destinationpath
 
                 # Check notification whether update or new
-                #print (notification)
-                print (" Notification: ", notification.get('Updated data',[]))
-                print (" Obscode:", para.get('obscode'))
                 # Extract a list of obscodes from updated data
                 updatelist = notification.get('Updated data',[])
-                if len(updatelist) > 0:
-                    updatelist = [os.path.split(el)[-1] for el in updatelist]
                 print (" Updated data sets:", updatelist)
                 updatestr = ''
-                obscode = para.get('obscode')
-                if obscode in updatelist:
+                if para.get('obscode') in updatelist:
                     updatestr = 'Submission UPDATE received: '
-
-                print (" Update string:", updatestr)
+                if debug:
+                    print (" Mail subject starts with:", updatestr)
                 updatedictionary = {} #GetMetaUpdates()
                 loggingdict = {}
 
@@ -613,7 +619,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 # - perform check1min (dos) analysis  -> report will be attached to the mail
                 # -----------
                 print (" Running check1min ...")
-                loggingdict = DOS_check1min(sourcepath,para.get('obscode'),year=readdict.get('Year'),winepath=winepath,updateinfo=updatedictionary,logdict=loggingdict, debug=debug)
+                #loggingdict = DOS_check1min(sourcepath,para.get('obscode'),year=readdict.get('Year'),winepath=winepath,updateinfo=updatedictionary,logdict=loggingdict, debug=debug)
 
                 # Report
                 # -----------------
@@ -626,10 +632,10 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
                 # perform noise analysis on selcted days
                 # -----------
-                if len(dailystreamlist) > 0:
-                    readdict = PowerAnalysis(dailystreamlist, readdict)
-                    # eventually update tablelist if noiselvel to large
-                    #tablelist = UpdateTable(tablelist, readdict)
+                #if len(dailystreamlist) > 0:
+                #    readdict = PowerAnalysis(dailystreamlist, readdict)
+                #    # eventually update tablelist if noiselvel to large
+                #    #tablelist = UpdateTable(tablelist, readdict)
 
                 # add results to a large dictionary for logging on the IMBOT server
                 # -----------
@@ -648,8 +654,9 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 print ("   -> found {}: {}".format(nameofdatachecker,referee))
                 print (" - Creating Mail")
                 stationname = ''  # contained in readme - extract
-                mailtext = CreateMinuteMail(level, para.get('obscode'), stationname=stationname, year=readdict.get("Year"), nameofdatachecker=nameofdatachecker)
-
+                mailtext = CreateMinuteMail(level, para.get('obscode'), stationname=stationname, year=readdict.get("Year"), nameofdatachecker=nameofdatachecker, notification=notification)
+                if debug:
+                    print (mailtext)
 
                 email, managermail = ObtainEmailReceivers(loggingdict, para.get('obscode'), os.path.join(pathemails,"mailinglist_minute.cfg"), referee, debug=debug)
 
@@ -662,11 +669,11 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     if debug:
                         print ("  Using mail configuration in ", mailcfg)
                     maildict = ReadMetaData(mailcfg, filename="mail.cfg")
-                    attachfilelist = loggingdict.get('Attachment')
+                    attachfilelist = loggingdict.get('Attachment',None)
                     if debug:
                         print ("  ATTACHMENT looks like:", attachfilelist)
-                        print ("   -> for file sending", ",".join(attachfilelist))
-                    maildict['Attach'] = ",".join(attachfilelist)
+                    if attachfilelist:
+                        maildict['Attach'] = ",".join(attachfilelist)
                     maildict['Text'] = mailtext
                     maildict['Subject'] = '{}IMBOT one-minute analysis for {} {}'.format(updatestr,para.get('obscode'),readdict.get("Year"))
                     #### take FROM from mail.cfg 
@@ -677,16 +684,18 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                         if para.get('obscode').upper() in testobslist: #or not testobslist
                             print ("  Selected observatory is part of the 'productive' list")
                             print ("   - > emails will be send to referee, submitters and manager")
+                            print ("       receivers are: {}".format(email))
                             maildict['To'] = email
                         else:
                             print ("  Selected observatory is NOT part of the 'productive' list")
                             print ("   - > emails will be send to IMBOT managers only")
+                            print ("       receivers are: {}".format(managermail))
                             maildict['To'] = managermail
                     else:
                         maildict['To'] = email
                     print ("  ... sending mail now")
+                    print ("       receivers are: {}".format(email))
                     #### Stop here with debug mode for basic tests without memory and mails
-                    #sys.exit()
                     sm(maildict)
                     print (" -> DONE: mail and report send") 
                 else:
@@ -741,7 +750,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
 
 def main(argv):
-    imbotversion = '1.0.3'
+    imbotversion = '1.0.4'
     checkrange = 0 #3 # 3 hours
     statusmsg = {}
     obslist = []
@@ -749,6 +758,9 @@ def main(argv):
     source = ''
     destination = ''
     pathminute = ''
+    step3mounted=''
+    step3source=''
+    step2source=''
     pathemails = ''
     tele = ''
     logpath = '/var/log/magpy'
@@ -761,13 +773,15 @@ def main(argv):
     testobslist=[]
     analysistype = 'minuteanalysis'
     winepath='/root/.wine'
+    step2 = {}
+    step3 = {}
 
     debug=False
 
     try:
-        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:e:l:c:p:w:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutesource=","emails=","logpath=","mailcfg=","testobslist=","winepath=","debug=",])
+        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:j:k:e:l:c:p:w:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","step2source=","step3source=","step3mounted=","emails=","logpath=","mailcfg=","testobslist=","winepath=","debug=",])
     except getopt.GetoptError:
-        print ('minuteanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutesource> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist>  -w <winepath>')
+        print ('minuteanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <step2source> -j <step3source> -k <step3mounted> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist>  -w <winepath>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -793,7 +807,8 @@ def main(argv):
             print ('-o            : a comma separated list of Obscodes/directories to deal with')
             print ('-x            : a comma separated list of Obscodes/directories to exclude')
             print ('-p            : preliminary obslist for full reporting - testobslist')
-            print ('-i            : basic directory on one minute data (IAF files)')
+            print ('-i            : basic directory for step2 minute data (IAF files)')
+            print ('-j            : basic directory for step3 minute data (IAF files)')
             print ('-e            : path to a local email repository - names: mailinglist.cfg, refereelist.cfg')
             print ('-n            : path for telegram configuration file for notifications')
             print ('-c            : path for mail configuration file "mail.cfg" - default is /etc/martas')
@@ -819,8 +834,12 @@ def main(argv):
             tmpdir = os.path.abspath(arg)
         elif opt in ("-m", "--memory"):
             memory = os.path.abspath(arg)
-        elif opt in ("-i", "--minutesource"):
-            pathminute = os.path.abspath(arg)
+        elif opt in ("-i", "--step2source"):
+            step2source = os.path.abspath(arg)
+        elif opt in ("-j", "--step3source"):
+            step3source = os.path.abspath(arg)
+        elif opt in ("-k", "--step3mounted"):
+            step3mounted = os.path.abspath(arg)
         elif opt in ("-e", "--emails"):
             pathemails = arg
         elif opt in ("-q", "--quietdaylist"):
@@ -879,18 +898,52 @@ def main(argv):
     """
 
     print ("Running IMBOT version {}".format(imbotversion))
-    # 1. got to source directory and locate files, check memory and whether file dates agree with criterion
+    print (" 1. got to source directory and locate files, check memory and whether file dates agree with criterion")
 
-    ## 1.1 Get current directory structure of source
-    currentdirectory, logdict = GetUploadMinuteInformation(source, checkrange=checkrange,obslist=obslist,excludeobs=excludeobs)
-    print ("Obtained Step1 directory: {}".format(currentdirectory))
+    ## 1.1 Get current directory structure of sources
+    try:
+        #  1.1.1 Access and transform step3 directory
+        #try:
+        if step3mounted:
+            success = ConverTime2LocationDirectory(step3mounted, step3source, debug=False)
+        if step3source:
+            step3, ld3 = GetGINDirectoryInformation(step3source, checkrange=checkrange, obslist=obslist,excludeobs=excludeobs)
+        else:
+            print (" 1.1.1 step3 source not defined")
+    except:
+        print ("Failure in step 1.1.1")
+        step3 = {}
+    try:
+        #  1.1.2 Access step2 directory
+        if step2source:
+            step2, ld2 = ma.GetGINDirectoryInformation(step2source, checkrange=checkrange, obslist=obslist,excludeobs=excludeobs)
+        else:
+            print (" 1.1.2 step2 source not defined")
+    except:
+        print ("Failure in step 1.1.1")
+        step2 = {}
+    try:
+        #  1.1.3 Access step1 directory
+        step1, logdict = GetGINDirectoryInformation(source, checkrange=checkrange,obslist=obslist,excludeobs=excludeobs)
+        print (" -> obtained Step1 directory: {}".format(step1))
+    except:
+        print ("Failure in step 1.1")
 
-    print ("Previous uploads: ", memdict)
-    ## 1.2 Subtract the two directories - only new files remain
-    newdict, notification = GetNewInputs(memdict,currentdirectory)
-    print (notification)
+    ## 1.2 Subtract the two directories - only files will remain which are not yet listed in final step 3
+    try:
+        #  1.2.1 Remove CODES already existing in step3 (and put to notification list)
+        st1new,noti = ma.GetNewInputs(step3, step1, simple=True, notification={}, notificationkey='Reached step3', debug=False)
+        #  1.2.2 Put CODES already existing in step2 to notification list
+        stforget,noti = ma.GetNewInputs(step2, st1new, simple=True, notification=noti, notificationkey='Reached step2', debug=False)
+        #  1.2.3 Get changed records
+        newdict, notification = ma.GetNewInputs(memdict, st1new, simple=False, notification=noti)
+        print (" -> removed all obscodes which have been moved/copied to step3") 
+        print ("    result: {}".format(notification))
+    except:
+        print ("Failure in step 1.2")
 
-    print ("Got New uploads:", newdict)
+    if debug:
+        print ("Got New uploads:", newdict)
     # 2. For each new input --- copy files to a temporary local directory (unzip if necessary)
     logdict = CopyTemporary(newdict, tmpdir=tmpdir, logdict=logdict)
 

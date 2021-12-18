@@ -13,6 +13,7 @@ import pwd
 import zipfile
 import tarfile
 from shutil import copyfile
+import filecmp
 from dateutil.relativedelta import relativedelta
 import gc
 
@@ -337,9 +338,13 @@ def ReadMetaData(sourcepath, filename = "meta*.txt"):
             return magpykey
 
         newhead = {}
-        metafilelist = glob.glob(os.path.join(sourcepath,filename))
-        #print (os.path.join(sourcepath,filename))
-        print (" Loading meta file:", metafilelist, os.path.join(sourcepath,filename))
+        if os.path.isfile(sourcepath):
+            print (" ReadMetaData: from sourcepath=file")
+            metafilelist = [sourcepath]
+        else:
+            print (" ReadMetaData: from sourcepath=directory")
+            metafilelist = glob.glob(os.path.join(sourcepath,filename))
+        print (" Loading meta file:", metafilelist)
 
         if len(metafilelist) > 0:
             if os.path.isfile(metafilelist[0]):
@@ -386,9 +391,10 @@ def CopyTemporary(pathsdict, tmpdir="/tmp", logdict={}):
             zipped files and tar archives will be extracted
         """
 
-        for element in pathsdict:
+        for obscode in pathsdict:
             condict = {}
-            para = pathsdict[element]
+            para = pathsdict[obscode]
+            path = para.get('rootdir')
             newdir = os.path.join(tmpdir, 'raw', para.get('obscode'))
 
             #para['temporaryfolder'] = newdir
@@ -396,10 +402,10 @@ def CopyTemporary(pathsdict, tmpdir="/tmp", logdict={}):
             if not os.path.exists(newdir):
                 os.makedirs(newdir)
 
-            for fname in os.listdir(element):
-                src = os.path.join(element,fname)
+            for fname in os.listdir(path):
+                src = os.path.join(path,fname)
                 dst = os.path.join(newdir,fname)
-                print ("Copying to temporary folder:", fname)
+                print ("Copying {} to temporary folder {}".format(fname,dst))
                 if fname.endswith('.zip') or fname.endswith('.ZIP'):
                     try:
                         with zipfile.ZipFile(src, 'r') as zip_ref:
@@ -413,7 +419,7 @@ def CopyTemporary(pathsdict, tmpdir="/tmp", logdict={}):
                             os.system(unzip)
                             condict[fname] = "unzipped"
                         except:
-                            logdict[element] = "Problem with zip file {}".format(fname)
+                            logdict[obscode] = "Problem with zip file {}".format(fname)
                             print ("endless ZIP file problem")
                 elif fname.endswith(".tar.gz") or fname.endswith(".TAR.GZ") or fname.endswith(".tgz") or fname.endswith(".TGZ"):
                     with tarfile.open(src, "r:gz") as tar:
@@ -427,13 +433,16 @@ def CopyTemporary(pathsdict, tmpdir="/tmp", logdict={}):
                     if not os.path.isdir(src):
                         # eventually use a filter method here like "if not fname in []"
                         try:
-                            copyfile(src, dst)
-                            condict[fname] = "file copied"
+                            if not os.path.exists(dst) or not filecmp.cmp(src, dst):
+                                copyfile(src, dst)
+                                condict[fname] = "file copied"
+                            else:
+                                condict[fname] = "file already exists"
                         except:
                             condict[fname] = "copying file failed"
 
 
-            logdict[element] = condict
+            logdict[obscode] = condict
             logdict['temporaryfolder'] = newdir
 
         return logdict

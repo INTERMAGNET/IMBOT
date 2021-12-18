@@ -21,12 +21,12 @@ Besides the following Linux packages need to be installed:
 
         mkdir /home/user/Software/
         cd /home/user/Software/
-        git clone https://
+        git clone https://github.com/geomagpy/imbot.git
 
 2. Create a path for your runtime jobs and logs
 
-        mkkdir /home/user/IMANALYSIS
-        mkkdir /home/user/IMANALYSIS/Runtime
+        mkdir /home/user/IMANALYSIS
+        mkdir /home/user/IMANALYSIS/Runtime
 
 3. Copy configuration files and runtime bash scripts into this directory
 
