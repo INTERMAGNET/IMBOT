@@ -615,6 +615,9 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 print (" Running MagPy test ...")
                 data, loggingdict = MagPy_check1min(sourcepath,para.get('obscode'),logdict=loggingdict, updateinfo=updatedictionary, debug=debug)
                 readdict['Year'] = loggingdict.get('year',year)
+                
+                destinationpath = os.path.join(destination,readdict.get('Year'),para.get('obscode'))
+                readdict['Destinationpath'] = destinationpath          
 
                 # - perform check1min (dos) analysis  -> report will be attached to the mail
                 # -----------
@@ -714,8 +717,9 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     # write report
                     try:
                         for atf in attachfilelist:
-                            print (" saving file {}".format(atf))
-                            copyfile(atf,destinationpath)
+                            print (" saving report file {}".format(atf))
+                            atfname = os.path.basename(atf)
+                            copyfile(atf,os.path.join(destinationpath,atfname))
                     except:
                         pass
 
@@ -724,6 +728,8 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                         WriteMemory(savelogpath, loggingdict)
                         savelogpath = os.path.join(destinationpath,"readdict.json")
                         WriteMemory(savelogpath, readdict)
+                        savelogpath = os.path.join(destination,"notification.json")
+                        WriteMemory(savelogpath, notification)
 
 
                 # Cleanup

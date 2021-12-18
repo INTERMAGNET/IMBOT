@@ -30,14 +30,20 @@ Besides the following Linux packages need to be installed:
 
 3. Copy configuration files and runtime bash scripts into this directory
 
-        cp /home/user/Software/config/*.cfg /home/user/IMANALYSIS/Runtime/
-        cp /home/user/Software/bash/*.sh /home/user/IMANALYSIS/Runtime/
+        cd /home/user/IMANALYSIS
+        mkdir Config
+        mkdir Runtime/git
+        TODO add update_lists.bash in Software/IMBOT/bash
+        TODO also copy example files for analysismin and sec
+        modify update lists and execute
 
 4. Modify configuration files and runtime scripts according to your system (see next chapter "Application" for details)
 
 5. Create paths to store temporary conversion files and a local performance memory. Please do not use the systems "/tmp" folder.
 
         mkdir /home/user/IMANALYSIS/Datacheck
+        mkdir /home/user/IMANALYSIS/Datacheck/minute
+        mkdir /home/user/IMANALYSIS/Logs
 
 6. IMBOT-minute specific installations
 
@@ -48,15 +54,15 @@ Install wine and add check1min.exe program.
 Start an exe program to get wine to be initialized for "root".
 
         cd /home/user/Software/IMBOT/check1min_ver171_for_IMBOT/
-        sudo wine heck1min.exe
+        wine check1min.exe
 
 Create a data folder in drive_c
 
-        sudo mkdir /root/.wine/drive_c/daten
+        mkdir /home/cobs/.wine/drive_c/daten
 
 Copy check1min into /root/.wine/drive_c/
 
-        sudo cp check1min.exe /root/.wine/drive_c/
+        cp check1min.exe /home/user/.wine/drive_c/
         
 IMPORTANT: wine (x86 application) cannot be easily run on ARM processors (e.g. Raspberry):
 
@@ -65,6 +71,8 @@ x86 emulater... . Anyway it is much better just to use another x86 single board 
         
 
 7. If all modifications have been performed, then start a test run
+
+        use IMBOT/documentation/testing_imbot.md
 
 8. Add IMBOT jobs to crontab
 
