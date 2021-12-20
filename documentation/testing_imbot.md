@@ -1,12 +1,14 @@
 
 
 user='cobs'
-mailcfg='mail_imbot.cfg' 
 
 # TESTING IMBOT methods
 import sys
 sys.path.insert(1,'/home/{}/Software/magpy/'.format(user))
 from magpy.stream import *
+sys.path.insert(1,'/home/{}/MARTAS/core/'.format(user))
+from martas import martaslog as ml
+from martas import sendmail as sm
 
 sys.path.insert(1,'/home/{}/Software/IMBOT/imbot/'.format(user))
 import minuteanalysis as ma
@@ -51,10 +53,18 @@ print (logdict)
 
 
 pathemails = '/home/{}/IMANALYSIS/Config'.format(user)
-mailcfg = '/etc/martas/{}'.format(mailcfg)
+mailcfg = '/etc/martas/mail_imbot.cfg'
 winepath='/home/{}/.wine/drive_c/'.format(user)
 reportdestination='/home/{}/IMANALYSIS/Datacheck/minute/'.format(user)
-fullreport = ma.CheckOneMinute(newdict, tmpdir='/tmp/', destination=reportdestination, logdict=logdict,pathemails=pathemails,mailcfg=mailcfg,notification=noti, winepath=winepath, debug=True)
+fullreport = ma.CheckOneMinute(newdict, tmpdir='/tmp/', destination=reportdestination, logdict=logdict,testobslist=['WIC'],pathemails=pathemails,mailcfg=mailcfg,notification=noti, winepath=winepath, debug=False)
+
+memory='/home/cobs/IMANALYSIS/Datacheck/minute/min_analysis2020.json'
+memdict={}
+for key in newdict:
+    memdict[key] = newdict[key]
+
+print ("Updating Memory: {}".format(memdict))
+success = ma.WriteMemory(memory, memdict)
 
 
 

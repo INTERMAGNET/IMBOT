@@ -38,13 +38,15 @@ APPLICATION:
 
 # Local reference for development purposes
 # ------------------------------------------------------------
-local = False
+import sys
+user='cobs'
+local = True
 if local:
-    import sys
-    sys.path.insert(1,'/home/leon/Software/magpy/')
+    sys.path.insert(1,'/home/{}/Software/magpy/'.format(user))
 
 from magpy.stream import *
 
+sys.path.insert(1,'/home/{}/MARTAS/core/'.format(user))
 from martas import martaslog as ml
 from martas import sendmail as sm
 
@@ -88,7 +90,7 @@ def ConverTime2LocationDirectory(sourcepath, destinationpath, debug=False):
         destination : string : the base path of the new directory i.e. my/path/step3new/mag2020
     """
     for root, dirs, files in os.walk(sourcepath):
-        level = root.replace(sourcepath, '').count(os.sep)
+        #level = root.replace(sourcepath, '').count(os.sep)
         if not dirs and files:  #asume we reached the final directory if there are no further subdirectories but files 
             # new directory name is defined from first three characters of filename
             for file in files:
@@ -139,7 +141,7 @@ def GetGINDirectoryInformation(sourcepath, flag=None, checkrange=2, obslist=[],e
             >>> import minuteanalysis as ma
             >>> storage, log = ma.GetGINDirectoryInformation(sourcepath,checkrange=2,obslist=obslist,excludeobs=[],debug=True)
         """
-        print ("Running directory information analysis")
+        print (" Running directory information analysis")
         if debug:
             print (" for observatories: {}".format(obslist))
         storage = {}
@@ -150,7 +152,8 @@ def GetGINDirectoryInformation(sourcepath, flag=None, checkrange=2, obslist=[],e
           if (len(obslist) > 0 and root.replace(sourcepath, '')[1:4] in obslist) or len(obslist) == 0:
             if (len(excludeobs) > 0 and not root.replace(sourcepath, '')[1:4] in excludeobs) or len(excludeobs) == 0:
               if level == 1:
-                print (" Found level 1 directory: {}".format(root))
+                if debug:
+                    print (" Found level 1 directory: {}".format(root))
                 # append root, and ctime of youngest file in directory
                 timelist = []
                 extlist = []
@@ -171,8 +174,8 @@ def GetGINDirectoryInformation(sourcepath, flag=None, checkrange=2, obslist=[],e
                 if len(timelist) > 0:
                     youngest = max(timelist)
                     if debug:
-                        print ("  -> youngest file: {}".format(youngest))
-                    print ("  -> last modified : {} ; checking data older than {}".format(datetime.utcfromtimestamp(youngest), datetime.utcnow()-timedelta(hours=checkrange)))
+                        #print ("  -> youngest file: {}".format(youngest))
+                        print ("  -> last modified : {} ; checking data older than {}".format(datetime.utcfromtimestamp(youngest), datetime.utcnow()-timedelta(hours=checkrange)))
                     # only if latest file is at least "checkrange" hours old
                     if datetime.utcfromtimestamp(youngest) < datetime.utcnow()-timedelta(hours=checkrange):
                         # check file extensions ... and amount of files (zipped, cdf, sec)
@@ -212,6 +215,9 @@ def GetNewInputs(memory, newdict, simple=False, notification={}, notificationkey
             mem = ma.ReadMemory('/home/leon/Tmp/Mag2020/mem.json')
             new, note = GetNewInputs(mem,storage)
         """
+        if not newdict:
+            print ("Empty new obs dictionary - returning empty dict")
+            return {},notification
         # newly uploaded
         newlist = []
         updatelist = []
@@ -616,7 +622,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 data, loggingdict = MagPy_check1min(sourcepath,para.get('obscode'),logdict=loggingdict, updateinfo=updatedictionary, debug=debug)
                 readdict['Year'] = loggingdict.get('year',year)
                 
-                destinationpath = os.path.join(destination,readdict.get('Year'),para.get('obscode'))
+                destinationpath = os.path.join(destination,str(readdict.get('Year')),para.get('obscode'))
                 readdict['Destinationpath'] = destinationpath          
 
                 # - perform check1min (dos) analysis  -> report will be attached to the mail
@@ -697,7 +703,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     else:
                         maildict['To'] = email
                     print ("  ... sending mail now")
-                    print ("       receivers are: {}".format(email))
+                    print ("       receivers are: {}".format(maildict['To']))
                     #### Stop here with debug mode for basic tests without memory and mails
                     sm(maildict)
                     print (" -> DONE: mail and report send") 
@@ -728,7 +734,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                         WriteMemory(savelogpath, loggingdict)
                         savelogpath = os.path.join(destinationpath,"readdict.json")
                         WriteMemory(savelogpath, readdict)
-                        savelogpath = os.path.join(destination,"notification.json")
+                        savelogpath = os.path.join(destination,str(readdict.get('Year')),"notification.json")
                         WriteMemory(savelogpath, notification)
 
 
@@ -768,7 +774,7 @@ def main(argv):
     step3source=''
     step2source=''
     pathemails = ''
-    tele = ''
+    tele = '/etc/martas/telegram.cfg'
     logpath = '/var/log/magpy'
     mailcfg = '/etc/martas'
     quietdaylist = ['2016-01-25','2016-01-29','2016-02-22','2016-03-13','2016-04-01','2016-08-28','2016-10-21','2016-11-05','2016-11-17','2016-11-19','2016-11-30','2016-12-01','2016-12-03','2016-12-04']
@@ -781,6 +787,9 @@ def main(argv):
     winepath='/root/.wine'
     step2 = {}
     step3 = {}
+    newdict={}
+    logdict={}
+    notifictaion={}
 
     debug=False
 
@@ -815,6 +824,7 @@ def main(argv):
             print ('-p            : preliminary obslist for full reporting - testobslist')
             print ('-i            : basic directory for step2 minute data (IAF files)')
             print ('-j            : basic directory for step3 minute data (IAF files)')
+            print ('-k            : mounted NRCAN definitive directory (IAF files)')
             print ('-e            : path to a local email repository - names: mailinglist.cfg, refereelist.cfg')
             print ('-n            : path for telegram configuration file for notifications')
             print ('-c            : path for mail configuration file "mail.cfg" - default is /etc/martas')
@@ -864,12 +874,16 @@ def main(argv):
         elif opt in ("-l", "--logpath"):
             logpath = os.path.abspath(arg)
         elif opt in ("-p", "--testobslist"):
-            testobslist = arg.split(',')
+            if arg in ['None','False','none','false','No','no',' ']:
+                testobslist = []
+            else:
+                testobslist = arg.split(',')
         elif opt in ("-w", "--winepath"):
             winepath = os.path.abspath(arg)
         elif opt in ("-D", "--debug"):
             debug = True
 
+    begin = datetime.utcnow()
 
     if debug and source == '':
         print ("Basic code test - done")
@@ -913,7 +927,11 @@ def main(argv):
         if step3mounted:
             success = ConverTime2LocationDirectory(step3mounted, step3source, debug=False)
         if step3source:
-            step3, ld3 = GetGINDirectoryInformation(step3source, checkrange=checkrange, obslist=obslist,excludeobs=excludeobs)
+            step3, ld3 = GetGINDirectoryInformation(step3source, checkrange=0, obslist=obslist,excludeobs=excludeobs)
+            try:
+                print (" -> obtained in Step3 directory: {}".format([key for key in step3]))
+            except:
+                print (" -> no Step3 data")
         else:
             print (" 1.1.1 step3 source not defined")
     except:
@@ -922,7 +940,11 @@ def main(argv):
     try:
         #  1.1.2 Access step2 directory
         if step2source:
-            step2, ld2 = ma.GetGINDirectoryInformation(step2source, checkrange=checkrange, obslist=obslist,excludeobs=excludeobs)
+            step2, ld2 = GetGINDirectoryInformation(step2source, checkrange=checkrange, obslist=obslist,excludeobs=excludeobs)
+            try:
+                print (" -> obtained Step2 directory: {}".format([key for key in step2]))
+            except:
+                print (" -> no Step2 data")
         else:
             print (" 1.1.2 step2 source not defined")
     except:
@@ -931,22 +953,32 @@ def main(argv):
     try:
         #  1.1.3 Access step1 directory
         step1, logdict = GetGINDirectoryInformation(source, checkrange=checkrange,obslist=obslist,excludeobs=excludeobs)
-        print (" -> obtained Step1 directory: {}".format(step1))
+        try:
+            print (" -> obtained in Step1 directory: {}".format([key for key in step1]))
+        except:
+            print (" -> no Step1 data")
     except:
         print ("Failure in step 1.1")
 
     ## 1.2 Subtract the two directories - only files will remain which are not yet listed in final step 3
-    try:
+    #try:
+    ok =True
+    if ok:
         #  1.2.1 Remove CODES already existing in step3 (and put to notification list)
-        st1new,noti = ma.GetNewInputs(step3, step1, simple=True, notification={}, notificationkey='Reached step3', debug=False)
+        st1new,noti = GetNewInputs(step3, step1, simple=True, notification={}, notificationkey='Reached step3', debug=False)
+        print ("1", noti)
         #  1.2.2 Put CODES already existing in step2 to notification list
-        stforget,noti = ma.GetNewInputs(step2, st1new, simple=True, notification=noti, notificationkey='Reached step2', debug=False)
+        stforget,noti = GetNewInputs(step2, st1new, simple=True, notification=noti, notificationkey='Reached step2', debug=False)
+        print ("2", noti)
         #  1.2.3 Get changed records
-        newdict, notification = ma.GetNewInputs(memdict, st1new, simple=False, notification=noti)
+        newdict, notification = GetNewInputs(memdict, st1new, simple=False, notification=noti)
         print (" -> removed all obscodes which have been moved/copied to step3") 
         print ("    result: {}".format(notification))
-    except:
-        print ("Failure in step 1.2")
+    #except:
+    #    print ("Failure in step 1.2")
+
+    print ("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    print ("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
     if debug:
         print ("Got New uploads:", newdict)
@@ -966,18 +998,26 @@ def main(argv):
     success = WriteMemory(memory, memdict)
 
     # I need an analysis report and a "program" runtime log
-    print ("Fullreport", fullreport)
-    # 
+    if debug:
+        print ("Fullreport", fullreport)
 
-    # 4.1 send a report to the IMBOT manager containng all failed and successful analysis and whether submitter was informed
-
+    # 4.1 send a report to the IMBOT manager containg all failed and successful analysis and whether submitter was informed
+    # drop Reached step2
+    notification.pop('Reached step2', None)
+    # drop Reached step3
+    notification.pop('Reached step3', None)
+    # drop Modified data
+    notification.pop('Modified data', None)
 
     if not tele == '' and not debug:
         martaslog = ml(logfile=telelogpath,receiver='telegram')
         martaslog.telegram['config'] = tele
         martaslog.msg(notification)
 
-    print ("-> ONE-MINUTE DATA ANALYSIS SUCCESSFULLY FINISHED")
+    end = datetime.utcnow()
+
+    print ("   needed {}".format(end-begin))
+    print ("=> ONE-MINUTE DATA ANALYSIS SUCCESSFULLY FINISHED")
 
 
 if __name__ == "__main__":

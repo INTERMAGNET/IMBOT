@@ -33,9 +33,8 @@ Besides the following Linux packages need to be installed:
         cd /home/user/IMANALYSIS
         mkdir Config
         mkdir Runtime/git
-        TODO add update_lists.bash in Software/IMBOT/bash
         TODO also copy example files for analysismin and sec
-        modify update lists and execute
+        modify /Runtime/update_lists.bash and execute
 
 4. Modify configuration files and runtime scripts according to your system (see next chapter "Application" for details)
 
@@ -72,9 +71,48 @@ x86 emulater... . Anyway it is much better just to use another x86 single board 
 
 7. If all modifications have been performed, then start a test run
 
-        use IMBOT/documentation/testing_imbot.md
+Please update addcred, ginsource, mail/telegram.cfg and check other configurations before continuing
 
-8. Add IMBOT jobs to crontab
+        use IMBOT/documentation/testing_imbot.md
+        
+If you don't receive emails please check spam folders.
+
+8. Create folder structure for mounts
+
+        cd /mnt
+        sudo mkdir minute
+        sudo mkdir second
+        sudo chown user:user *
+        mkdir minute/step1
+        mkdir minute/step2
+        mkdir minute/step3
+        mkdir second/step1   # access step1 data
+        mkdir second/step2   # save level2 data on GIN
+
+Please note: you need to set the following for non-root access:
+fusermount: option allow_other only allowed if 'user_allow_other' is set in /etc/fuse.conf
+
+8. Create folder structure local storage of analyzed second and step3 minute 
+
+Ideally you would mount an external storage medium to /srv
+
+        sudo mkdir /srv/imbot
+        sudo chown user:user /srv/imbot
+        mkdir /srv/imbot/second/step2
+        mkdir /srv/imbot/minute/step3
+
+9. Add IMBOT jobs to crontab
+
+Use three years for second data and two years for minute data (8 hours difference for second, one hour before end, minute data)
+
+        10 0   * * *  bash /home/user/IMANALYSIS/Runtime/update_lists.bash > /home/user/IMANALYSIS/Logs/update_lists.log
+        20  0   * * *  bash /home/user/IMANALYSIS/Config/analyzesecond2019.sh > /home/user/IMANALYSIS/Logs/last_sec_analysis2019.log
+        20  8   * * *  bash /home/user/IMANALYSIS/Config/analyzesecond2020.sh > /home/user/IMANALYSIS/Logs/last_sec_analysis2020.log
+        20  16   * * *  bash /home/user/IMANALYSIS/Config/analyzesecond2021.sh > /home/user/IMANALYSIS/Logs/last_sec_analysis2021.log
+        20  7   * * *  bash /home/user/IMANALYSIS/Config/analyzeminute2020.sh > /home/user/IMANALYSIS/Logs/last_min_analysis2020.log
+        20  15   * * *  bash /home/user/IMANALYSIS/Config/analyzeminute2021.sh > /home/user/IMANALYSIS/Logs/last_min_analysis2021.log
+
+10. Activate monitoring and reporting features
 
 
 ## Updating IMBOT parameter on GITHUB
@@ -107,7 +145,7 @@ IMPORTANT: if mailaddresses are provided within mailinglist_minute.txt for a spe
    modify analysisminuteYEAR.sh:
    OBSTESTLIST="WIC"
    OBSLIST="WIC,CLF"      e.g. OBSLIST="WIC"
-   -> only managerreport for CLF, full report for WIC
+   -> only managerreport for CLF, full report for WIC (contained in OBSTESTLIST)
 
 4. Partial testmode:
    Running for all observatories listed in refereelist_minute (full report for selected)
