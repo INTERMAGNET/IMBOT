@@ -112,144 +112,6 @@ def ConverTime2LocationDirectory(sourcepath, destinationpath, debug=False):
                         print ("ConverTime2LocationDirectory DEBUG: would copy {} to {}".format(src,dst))
                 
 
-def GetGINDirectoryInformation(sourcepath, flag=None, checkrange=2, obslist=[],excludeobs=[], debug=False):
-        """
-        DESCRIPTION:
-            Method will check directory structure of the STEP1 one second directory
-            It will extract directory, amount of files, filetype, and last modification date
-            ** NEW Version 1.0.4**
-            - modified files will be logged 
-            - test environment for this method
-            - would it not be better to use obscode as key and root path as value?
-            - added flag (can be step1, step2, step3)
-            - new name: GetGINDirectoryInformation
-            ** NEW Version 1.0.4**
-        RETURN:
-            storage   DICT  a dictionary with key root path (.../WIC) and values {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode} ** NEW Version 1.0.4** 'moddict': {file1 : modtime1, file2 : modtime2, ...} 
-            logdict   DICT 
-        
-        APPLICTAION:
-            to check step 1 one second directory for new or modified data sources
-            Suggested technique for updating previously submitted and updated step10,level1, and level2 data:
-            Data passing all level0 clearance is moved to a new path (raw: step1, level1-3: level)
-            --- extract level information from directory:
-            --- thus add a file called " levelx.txt" with the highest reached level after each treatment, add a asterix for data awaiting a check
-            This way, the same method can also be applied to the level directory
-        TEST:
-            $ mount sorcedict
-            $ python3
-            >>> import minuteanalysis as ma
-            >>> storage, log = ma.GetGINDirectoryInformation(sourcepath,checkrange=2,obslist=obslist,excludeobs=[],debug=True)
-        """
-        print (" Running directory information analysis")
-        if debug:
-            print (" for observatories: {}".format(obslist))
-        storage = {}
-        logdict = {}
-        obscode = 'None'
-        for root, dirs, files in os.walk(sourcepath):
-          level = root.replace(sourcepath, '').count(os.sep)
-          if (len(obslist) > 0 and root.replace(sourcepath, '')[1:4] in obslist) or len(obslist) == 0:
-            if (len(excludeobs) > 0 and not root.replace(sourcepath, '')[1:4] in excludeobs) or len(excludeobs) == 0:
-              if level == 1:
-                if debug:
-                    print (" Found level 1 directory: {}".format(root))
-                # append root, and ctime of youngest file in directory
-                timelist = []
-                extlist = []
-                obscode = root.replace(sourcepath, '')[1:4]
-                obscode = obscode.upper()
-                moddict = {}
-                for f in files:
-                    try:
-                        stat=os.stat(os.path.join(root, f))
-                        mtime=stat.st_mtime
-                        ctime=stat.st_ctime
-                        ext = os.path.splitext(f)[1]
-                        timelist.append(mtime)
-                        extlist.append(ext)
-                        moddict[f] = mtime
-                    except:
-                        logdict[obscode] = "Failed to extract mtimes"
-                if len(timelist) > 0:
-                    youngest = max(timelist)
-                    if debug:
-                        #print ("  -> youngest file: {}".format(youngest))
-                        print ("  -> last modified : {} ; checking data older than {}".format(datetime.utcfromtimestamp(youngest), datetime.utcnow()-timedelta(hours=checkrange)))
-                    # only if latest file is at least "checkrange" hours old
-                    if datetime.utcfromtimestamp(youngest) < datetime.utcnow()-timedelta(hours=checkrange):
-                        # check file extensions ... and amount of files (zipped, cdf, sec)
-                        # firstly remove txt, par and md from list (meta.txt contain updated parameters)
-                        if debug:
-                            print ("  -> extensions: {}".format(extlist))
-                        extlist = [el for el in extlist if not el in ['.txt', '.md']]
-                        amount = len(files)
-                        if len(extlist) > 0:
-                            typ = max(extlist,key=extlist.count)
-                            if typ in ['.zip', '.gz', '.tgz', '.tar.gz', '.tar', '.cdf', '.sec']:
-                                parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode, 'rootdir': root, 'flag': flag, 'moddict': moddict}
-                                storage[obscode] = parameter
-                            elif typ in ['.min', '.bin', '.{}'.format(obscode.lower()), '.blv', '.BIN', '.BLV', '.{}'.format(obscode.upper())]:
-                                parameter = {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode, 'rootdir': root, 'flag': flag, 'moddict': moddict}
-                                storage[obscode] = parameter
-                            else:
-                                logdict[obscode] = "Found unexpected data type '{}'".format(typ)
-                        else:
-                            logdict[obscode] = "Directory existing - but no files found"
-                    else:
-                        logdict[obscode] = "Uploaded recently - eventually not finished"
-              elif level > 1:
-                logdict[obscode] = "Found subdirectories - ignoring this folder"
-
-        return storage, logdict
-
-
-
-def GetNewInputs(memory, newdict, simple=False, notification={}, notificationkey='', debug=False):
-        """
-        DESCRIPTION
-            will return a dictionary with key/value pairs from dir analysis
-            which are not in memory. 
-             simple only compare keys
-        TESTING:
-            mem = ma.ReadMemory('/home/leon/Tmp/Mag2020/mem.json')
-            new, note = GetNewInputs(mem,storage)
-        """
-        if not newdict:
-            print ("Empty new obs dictionary - returning empty dict")
-            return {},notification
-        # newly uploaded
-        newlist = []
-        updatelist = []
-        valuelist = []
-        out = {}
-        mod = {}
-        for key, value in newdict.items():
-            if not key in memory:
-                newlist.append(key)
-                out[key] = value
-            elif value != memory[key] and not simple:
-                memval = memory[key].get('moddict')
-                moddict = value.get('moddict')
-                changed = {k:v for k,v in moddict.items() if v != memval[k]} 
-                updatelist.append(key)
-                mod[key] = changed
-                out[key] = value
-            else:
-                valuelist.append(key)
-        if not simple:
-            notification['New Uploads'] = newlist
-            notification['Updated data'] = updatelist
-            notification['Modified data'] = mod
-        if simple and key:
-            notification[notificationkey] = valuelist
-
-        if debug:
-            print ("Out dictionary:", out)
-            print ("Notification:", notification)
-
-        return out,notification
-
 
 ### ####################################
 ### Minute specific methods 
@@ -994,7 +856,10 @@ def main(argv):
     # -----------
     for key in newdict:
         memdict[key] = newdict[key]
-    print ("Updating Memory: {}".format(memdict))
+    if debug:
+        print ("Updating Memory: {}".format(memdict))
+    else:
+        print ("Updating Memory...")
     success = WriteMemory(memory, memdict)
 
     # I need an analysis report and a "program" runtime log

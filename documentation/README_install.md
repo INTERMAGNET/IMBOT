@@ -114,6 +114,9 @@ Use three years for second data and two years for minute data (8 hours differenc
 
 10. Activate monitoring and reporting features
 
+   MARTAS monitor bei install.addapps
+   configure monitor.cfg in /etc/martas
+   
 
 ## Updating IMBOT parameter on GITHUB
 
