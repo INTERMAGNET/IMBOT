@@ -413,8 +413,10 @@ def WriteMemory(memorypath, memdict):
              write memory
         """
         try:
-            with open(memorypath, 'w') as outfile:
-                json.dump(memdict, outfile)
+            with open(memorypath, 'w', encoding='utf-8') as f:
+                json.dump(memdict, f, ensure_ascii=False, indent=4)
+            #with open(memorypath, 'w') as outfile:
+            #    json.dump(memdict, outfile)
         except:
             return False
         return True
