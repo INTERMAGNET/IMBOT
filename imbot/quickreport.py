@@ -123,7 +123,7 @@ def create_runtime_table(tformat='markdown',style='simple', logpath='',debug=Fal
     table = ''
     
     if style == 'simple':
-        head = ['year', 'lastrun', 'success']
+        head = ['year', 'resolution', 'lastrun', 'success']
 
     body = []
     logfile = os.path.join(logpath,'last*analysis*')
@@ -133,6 +133,10 @@ def create_runtime_table(tformat='markdown',style='simple', logpath='',debug=Fal
         if len(yearl) > 0:
             year = int(yearl[-1])
         # get creation data
+        if 'min' in name:
+            res = 'min'
+        else:
+            res = 'sec'
         stat=os.stat(name)
         mtime=stat.st_mtime
         ctime=stat.st_ctime
@@ -143,7 +147,7 @@ def create_runtime_table(tformat='markdown',style='simple', logpath='',debug=Fal
         with open(name) as f:
             if 'ANALYSIS SUCCESSFULLY FINISHED' in f.read():
                 succ = 'Yes'
-        body.append([year,stmdate,succ])
+        body.append([year,res,stmdate,succ])
 
     table = markdown_table(head,body)
     return table

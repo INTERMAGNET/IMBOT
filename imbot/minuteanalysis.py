@@ -32,7 +32,7 @@ DESCRIPTION:
 
 APPLICATION:
 
-  $PYTHON $APP -s $MINDIR -d $DESTINATION -t $TMPDIR -m $MEMORY -n /etc/martas/telegram.cfg -e $CFGDIR -q $QUIETDAYLIST -p $OBSTESTLIST -o $OBSLIST
+  $PYTHON $APP -s $MINDIR -d $DESTINATION -t $TMPDIR -m $MEMORY -n /etc/martas/telegram.cfg -e $CFGDIR -p $OBSTESTLIST -o $OBSLIST
 
 """
 
@@ -192,6 +192,7 @@ def DOS_check1min(sourcepath, obscode, year=2020, winepath='/root/.wine',logdict
     os.symlink(src, dst)
     if debug:
         print ("Linking {} to {}".format(src,dst))
+        print (" ... now analyzing data for year {}".format(year))
 
     curwd = os.getcwd()
     os.chdir(winepath)
@@ -414,7 +415,7 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
     return data, logdict
 
 
-def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], testobslist=[], checklist=['default'], pathemails=None, mailcfg='',notification={}, winepath='/root/.wine', debug=False):
+def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, selecteddayslist=[], testobslist=[], checklist=['default'], pathemails=None, mailcfg='',notification={}, winepath='/root/.wine', year=2020, debug=False):
         """
         DESCRIPTION
             method to perfom data conversion and call the check methods
@@ -445,6 +446,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 print ("Starting analysis for {}".format(obscode))
                 #try
                 readdict = {}
+                updatedictionary = {} #GetMetaUpdates()
                 para = pathsdict.get(obscode)
                 
                 dailystreamlist = []
@@ -471,11 +473,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     updatestr = 'Submission UPDATE received: '
                 if debug:
                     print (" Mail subject starts with:", updatestr)
-                updatedictionary = {} #GetMetaUpdates()
-                loggingdict = {}
 
-                # Initializing analysis year
-                year = datetime.utcnow().year - 1
                 loggingdict['year'] = year
 
                 # - perform MagPy basic read and content check, extract binary data
@@ -636,11 +634,11 @@ def main(argv):
     step3source=''
     step2source=''
     pathemails = ''
+    year = 2020
     tele = '/etc/martas/telegram.cfg'
     logpath = '/var/log/magpy'
     mailcfg = '/etc/martas'
-    quietdaylist = ['2016-01-25','2016-01-29','2016-02-22','2016-03-13','2016-04-01','2016-08-28','2016-10-21','2016-11-05','2016-11-17','2016-11-19','2016-11-30','2016-12-01','2016-12-03','2016-12-04']
-    manager = ['ro.leonhardt@googlemail.com','jreda@igf.edu.pl','hom@ngs.ru','tero.raita@sgo.fi','heumez@ipgp.fr','Andrew.Lewis@ga.gov.au']
+    manager = ['ro.leonhardt@googlemail.com','jreda@igf.edu.pl']
     memory='/tmp/secondanalysis_memory.json'
     tmpdir="/tmp"
     #testobslist=['WIC','BOX','DLT','IPM','KOU','LZH','MBO','PHU','PPT','TAM','CLF']
@@ -656,9 +654,9 @@ def main(argv):
     debug=False
 
     try:
-        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:j:k:e:l:c:p:w:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","step2source=","step3source=","step3mounted=","emails=","logpath=","mailcfg=","testobslist=","winepath=","debug=",])
+        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:j:k:e:l:y:c:p:w:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","step2source=","step3source=","step3mounted=","emails=","logpath=","mailcfg=","testobslist=","winepath=","debug=",])
     except getopt.GetoptError:
-        print ('minuteanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <step2source> -j <step3source> -k <step3mounted> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist>  -w <winepath>')
+        print ('minuteanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <step2source> -j <step3source> -k <step3mounted> -e <emails> -l <logpath> -y <year> -c <mailcfg> -p <testobslist>  -w <winepath>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -689,6 +687,7 @@ def main(argv):
             print ('-k            : mounted NRCAN definitive directory (IAF files)')
             print ('-e            : path to a local email repository - names: mailinglist.cfg, refereelist.cfg')
             print ('-n            : path for telegram configuration file for notifications')
+            print ('-y            : year of analysis')
             print ('-c            : path for mail configuration file "mail.cfg" - default is /etc/martas')
             print ('-l            : path for logs and logging info, default is /var/log/magpy')
             print ('-------------------------------------')
@@ -733,6 +732,8 @@ def main(argv):
             tele = os.path.abspath(arg)
         elif opt in ("-c", "--mailcfg"):
             mailcfg = os.path.abspath(arg)
+        elif opt in ("-y", "--year"):
+            year = int(arg)
         elif opt in ("-l", "--logpath"):
             logpath = os.path.abspath(arg)
         elif opt in ("-p", "--testobslist"):
@@ -780,13 +781,15 @@ def main(argv):
     """
 
     print ("Running IMBOT version {}".format(imbotversion))
-    print (" 1. got to source directory and locate files, check memory and whether file dates agree with criterion")
+    print (" 1. entering source directory and locate files, check memory and whether file dates agree with criterion")
 
     ## 1.1 Get current directory structure of sources
     try:
         #  1.1.1 Access and transform step3 directory
         #try:
         if step3mounted:
+            if debug:
+                print ("Converting step3 definitive data from seismic to magnetic representation")
             success = ConverTime2LocationDirectory(step3mounted, step3source, debug=False)
         if step3source:
             step3, ld3 = GetGINDirectoryInformation(step3source, checkrange=0, obslist=obslist,excludeobs=excludeobs)
@@ -849,7 +852,7 @@ def main(argv):
 
     print ("Running conversion and data check:")
     # 3. Convert Data includes validity tests, report creation and exporting of data
-    fullreport = CheckOneMinute(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,selecteddayslist=quietdaylist,testobslist=testobslist,pathemails=pathemails,mailcfg=mailcfg,notification=notification, winepath=winepath, debug=debug)
+    fullreport = CheckOneMinute(newdict, tmpdir=tmpdir, destination=destination, logdict=logdict,testobslist=testobslist,pathemails=pathemails,mailcfg=mailcfg,notification=notification, winepath=winepath, year=year, debug=debug)
 
     # 4. Memory for already analyzed data
     # add successful analysis to memory

@@ -1153,7 +1153,7 @@ def CreateSecondMail(level, obscode, stationname='', year=2016, nameofdatachecke
             last = ". Your data checker is {}.\nPlease note that INTERMAGNET data checkers perform all check on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise".format(nameofdatachecker)
 
         level0 = "Level 0 means that your data did not pass the automatic reading and conversion test. Please update your data submission.\nOften a level 0 report is connected to corrupted files.\nPlease read the attached report and instructions before re-submission.\n\n" 
-        level1 = "Level 1 indicates that your data is almost ready for final reviews. In order to continue the evaluation process some issues need to be clarified. Please read the attached report and follow the instructions. In most cases obligatory meta-information is missing. You can easily provide that by filling out and uploading the meta_.txt file.\n\n".format(obscode)
+        level1 = "Level 1 indicates that your data is almost ready for final reviews. In order to continue the evaluation process some issues need to be clarified. Please read the attached report and follow the instructions. In most cases obligatory meta-information is missing. You can easily provide that by filling out and uploading the attached meta_{}.txt file.\n\n".format(obscode)
         
         level2 = "Congratulations! Your data fulfills all requirements of the automatic checking process. A level 2 data product is an excellent source for high resolution magnetic information. Your data set {} assigned to an INTERMAGNET data checker for final decision{}\n\n".format(time,last)
 
@@ -1414,7 +1414,7 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 # -----------
                 level = WriteReport(destinationpath, para, readdict, logdict, tablelist=tablelist,year=readdict.get("Year"))
                 print (" Asigning data checker")
-                nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist.cfg"))
+                nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist_second.cfg"))
                 try:
                     stationname = readdict.get('1').get('Header').get('StationName','')
                 except:
@@ -1427,8 +1427,7 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
                 # Create mailing list
                 # -----------
-                ## TODO add ObtainMailAdress method here
-                email, managermail = ObtainEmailReceivers(logdict, para.get('obscode'), os.path.join(pathemails,"mailinglist.cfg"), referee, localmailinglist= os.path.join(destination,"localmailrep.json"), debug=debug)
+                email, managermail = ObtainEmailReceivers(logdict, para.get('obscode'), os.path.join(pathemails,"mailinglist_second.cfg"), referee, localmailinglist= os.path.join(destination,"localmailrep.json"), debug=debug)
                 print ("=> sending to {}".format(email))
 
                 print ("---------------------------- ")
@@ -1568,7 +1567,7 @@ def main(argv):
             print ('-i            : basic directory for step1 one minute data (IAF files)')
             print ('-j            : basic directory for step2 one minute data (IAF files)')
             print ('-k            : basic directory for step3 one minute data (IAF files)')
-            print ('-e            : path to a local email repository - names: mailinglist.cfg, refereelist.cfg')
+            print ('-e            : path to a local email repository - names: mailinglist_second.cfg, refereelist_second.cfg')
             print ('-n            : path for telegram configuration file for notifications')
             print ('-c            : path for mail configuration file "mail.cfg" - default is /etc/martas')
             print ('-l            : path for logs and logging info, default is /var/log/magpy')
@@ -1604,7 +1603,7 @@ def main(argv):
         elif opt in ("-o", "--observatories"):
             obslist = arg.replace(" ","").split(',')
             if 'REFEREE' in obslist:
-                obslist = GetObsListFromChecker(obslist, os.path.join(pathemails,"refereelist.cfg"))
+                obslist = GetObsListFromChecker(obslist, os.path.join(pathemails,"refereelist_second.cfg"))
             print (" OBSLIST provided: dealing only with {}".format(obslist))
         elif opt in ("-x", "--exclude"):
             excludeobs = arg.replace(" ","").split(',')
