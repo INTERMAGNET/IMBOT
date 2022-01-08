@@ -366,10 +366,14 @@ def DeltaFTest(data, logdict):
             f1text = "found independend"
             if scal=='f':
                 ftest = ftest.delta_f()
-                #TODO proper treatment of -S values in delta_f in MagPy
-                #quick and dirty workaround -> exclude large negative  values
-                ftest = ftest.extract('df',-15000,'>')
-                
+            #TODO proper treatment of -S values in delta_f in MagPy
+            # or ignore: G is quality value for variometer data and 
+            #should be provided for existing variometer values.
+            # If F(S) should be provided, an independent measurement with 
+            # with eventually different sampling rate or data value at non-existing
+            # variometer data, then please provide it as S. G can be easily calculated
+            #quick workaround -> exclude large negative  values
+            ftest = ftest.extract('df',-15000,'>')    
 
             fmean, fstd = ftest.mean('df',std=True)
             logdict['delta F'] = "mean delta F of {:.3f} with a std of {:.3f}".format(fmean,fstd)
