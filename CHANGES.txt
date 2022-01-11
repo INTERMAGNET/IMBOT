@@ -2,6 +2,29 @@
 # An automatic data checker for one second data.
 -------------------------------------------------
 
+####<1.0.4>, <2022-01-11> --
+
+1.0.4 general:
+    + full minute and second analysis
+    + making use of step1,step2 and step3 minute data for one-second
+      evaluation
+    + checking step3 for stop monitoring of step1 minute
+    + e-mail notification updates and corrections
+    + including all suggestions from IM data committee meeting 
+      - using step3 minute data as prerequisite for proceeding with one-second
+      - remove statements with "provisionally accepted"
+      - adept code procedure
+
+1.0.4 fixed:
+    + treatment of -S values in G data
+    + treatment of confirmed missing data for level classification
+
+1.0.4 additions:
+    + added README as pdf to documentation
+    + added a test environment of minute and second IMBOT methods
+    + added information on changed files when receiving Update notifications
+
+
 ####<1.0.3>, <2021-07-05> --
 
 1.0.3 general:
