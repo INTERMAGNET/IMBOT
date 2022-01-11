@@ -12,7 +12,8 @@ IMBOT provides automatic routines to convert and evaluate INTERMAGNET (IM) data 
 Since 2014 [INTERMAGNET] welcomes submissions of data products with one-second resolution. For effective archiving of such data sets a new data format, [IMAGCDF], was suggested. All INTERMAGNET observatories are invited to submit such data sets along with their traditional one-minute data products. The acceptance of an observatory for INTERMAGNET is still solely based on the quality of definitive one-minute products. Nevertheless, submitted one-second data should meet high INTERMAGNET standards as well and the quality of these data products needs to be tested and evaluated by a transparent and conclusive process. Ideally, an end user of such data products can also access and understand the quality assessment scheme. 
 A major problem of evaluating one-second data products is the large amount of data and big file sizes, which usually make it more complicated to handle them for data checkers. On the other side, the amount of data, the need for more sophisticated data formats and meta information lead also to problems on the supplier side. At the moment (mid 2020) most submitted data sets have not been checked so far.
 Most one-second data has been submitted for the year 2016 by the time of writing this summary. Therefore, this year was selected to develop and evaluate the INTERMAGNET automatic data checker (IMBOT). Data files from 36 observatories are available for 2016. These data files have been submitted in various different ways. The underlying data formats are either IAGA-2002 or different versions of IMAGCDF. IAGA-2002 submissions cover daily records which then have been packed into either daily, monthly or yearly zip files using zip or tgz compressions. IMAGCDF file submissions consist mostly of daily files, compressed in gnuzip or zips or just tared. Monthly IMAGCDF files without any additional compression as requested by IM are provided by few observatories only. When looking at the file coverage it is found that about 20% of the submissions do not cover the expected time range. These files usually contain one second of the previous month and end at 23:59:58 of the last day in the month. When it comes to expected meta information, requested information is missing in more than 75% of all submissions. Nevertheless, most of these issues are not difficult to solve, altough they would require a significant amount of discussion between data checker and submitting institut.
-The principle idea of IMBOT, the automatic data checker, is to minimize the work load on both sides, data supplier and data checker, and provide one-second data as fast as possible to end-users. IMBOT accesses data uploads from the observatories and automatically converts the uploaded data sets into an INTERMAGNET conform [IMAGCDF] archive format. During the conversion process, data and meta information content is checked and any missing information is requested from the uploading institute. Missing meta information can be easily supplied, by providing this data in an automatically produced and pre-configured text file to be uploaded into the submission directory minimizing the amount of data needed to be transferred to the GIN. Thus, at time when data checkers need to finally evaluate such data sets, most technical problems have been solved already, and the basic content should be conform to IM rules. The evaluation process makes use of a level description, similar as in other disciplines and as used for satellite data products. Therefore most end users are already well acquainted with such evaluation process. In dependency of data content, meta information and data quality, data is assigned to different quality levels from 0 to 3, from which the highest level 3 can only be reached after manual control from a data checker.
+The principle idea of IMBOT, the automatic data checker, is to minimize the work load on both sides, data supplier and data checker, and provide one-second data as fast as possible to end-users. 
+IMBOT one-second accesses data uploads from the observatories and automatically converts the uploaded data sets into an INTERMAGNET conform [IMAGCDF] archive format. During the conversion process, data and meta information content is checked and any missing information is requested from the uploading institute. Missing meta information can be easily supplied, by providing this data in an automatically produced and pre-configured text file to be uploaded into the submission directory minimizing the amount of data needed to be transferred to the GIN. Thus, at time when data checkers need to finally evaluate such data sets, most technical problems have been solved already, and the basic content should be conform to IM rules. The automatic evaluation process of one-second data makes use of a level description, similar as in other disciplines and as used for satellite data products. Therefore most users are already well acquainted with such evaluation process. In dependency of data content, meta information and data quality, data is assigned to different quality levels from 0 to 2, from which the highest level 2 in combination with an accepted one-minute product qualifies for final manual evaluation by a data checker.
 
 Beside supporting the primary aim, simplifying and speeding up the publication and checking process of one-second data, IMBOT has been recently extended supporting one-minute data checking as well. As one-minute data checking is well established already, IMBOT focuses on notification and provides reports based on the usually applied [check1min] routine. Thus referees and data submitters will get such reports whenever new data is submitted of modified within the STEP1 directory of the GIN. As soon as data is accepted and moved to STEP3, data sets are not monitored any more.
 
@@ -20,49 +21,45 @@ Beside supporting the primary aim, simplifying and speeding up the publication a
 
 IMBOT is running on an independent Linux server, which currently is a poc120 industrial computer, located in southern Germany, hereinafter denoted as IMBOT server. The IMBOT server is maintained by an observer, the IMBOT manager, who monitors run time and data processing on the machine. The IMBOT server accesses periodically, e.g. twice a day, the INTERMAGNET GIN in Paris, and scans the submission directories of the last three years (two years for one-minute) for new and modified files and directories. Beside the STEP1 and STEP2 directories, on the GIN, definitive data products on the NRCAN FTP site are also accessed. New or modified files within the STEP1 directories are identified by their creation and modification time, and by comparing this information with an "already processed" memory on the IMBOT server. If a new directory or new data is found within an observatories directory at the GIN, which has not changed for at least 3 hours, then data within is directory will be analyzed. The three hour rule, at which no further change occurred, ascertains that the upload process of files for this directory is finished.
 
-### 2.1 IMBOT one-second
+## 3. IMBOT one-second
 
-#### 2.1.1 How does IMBOT one-second work
+### 3.1 How does IMBOT one-second work
 
 For analysis, the new data set will automatically be downloaded and eventually extracted (supported are zip, gz and tar) to a temporary directory on the IMBOT server. An initial read test on a random data file will be performed based on [MagPy]'s format library, supporting e.g. [IAGA-2002] and [IMAGCDF] submissions. If successful, all data sets will be read and subsequently the evaluation steps as outlined below will be performed. Finally, data will be exported into monthly [IMAGCDF] archive files as requested by INTERMAGNET and uploaded to the GIN. The full evaluation process is summarized within an individual [IMBOT 1s report] for each observatory. The report, eventually including instructions on updates/fixes, will then be send to the submitting institute, provided that an e-mail address is available. The report is written in markdown language, which can be viewed in freely available programs (e.g. [dillinger.io]), on [GitHub] and also opened in any text editor. If the data set already satisfies all conditions for final evaluation, then a data checker will be assigned and the [IMBOT 1s report] will also be send directly to the data checker. All automatic processes are logged and reports on newly evaluated data and eventual problems are send to the IMBOT manager. Converted data files, the reports, and if necessary, a template for meta information updates, will also be uploaded to the GIN into a new subdirectory called "level" to be found here: GINSERVER/YEAR/level/OBSCODE. Original submission in step1 are kept until final evaluation from the data checker. The data submitter is asked to briefly check, whether all converted files have been uploaded into the "level" directory.
   
 
-#### 2.1.2 Quality levels
+### 3.2 Quality levels
 
-Any data set which is automatically evaluated will be transferred into a new directory structure on the GIN. If data is unreadable, original data sets will solely remain in the submission directory "step1". The IMBOT manager will be informed on such failures and will contact the submitting institute to check their data submission. Data passing a read test will be moved towards a new directory called level. Within the level directory, subdirectories with the [IAGA] obscode as directory name will be established. A file called e.g. **level1_underreview.md** will provide information on the evaluation state of the data set. **underreview** indicates, that the data set can reach the next evaluation level if appropriate information is provided or data checking is finished. If no updates happen within a certain time limit (suggested here are three months) then the current level will be fixed (e.g. **level1.md**). All data sets within the level directory are provisionally accepted by INTERMAGNET.
+The automatic evaluation routine of IMBOT one-second makes use of a level description of which level 2 is the highest possible grade. Data suppliers will get an automatic feedback whenever a new evaluation of their data is triggered by IMBOT, indicting the current level of the automatic checking routine. 
 
-##### Level 1
+#### Level 0
 
-Any uploaded data set which is readable and can be converted to an [IMAGCDF] format is automatically assigned to level 1. The uploaded data sets can be either [IAGA-2002] files or [IMAGCDF] files. Compressed archives containing these files using ZIP, GNUZIP and/or TAR are also supported. Level 1 data is already published by INTERMAGNET and made available to end users, including information on the level determination. A level 1 test is performed completely automatic by IMBOT. 
+Indicates significant problems with the data structure, related to large gaps, unreadable files or non-interpretale file structure. Institutes receiving a level 0 report are asked to contact the IMBOT manager for support.
 
-##### Level 2
+#### Level 1
 
-Level 2 acceptance requires that all requested meta information is provided, including information on standard levels as outlined in the [IMAGCDF] format description, like timing accuracy, instruments noise levels etc. IMBOT will check the supplied meta information and, if anything is missing or unclear, will request this information from the submitting institute. Missing information can be uploaded by a simple sheet, triggering IMBOT to re-evaluate the data set. If such information cannot or is not provided within a certain time limit, the evaluation level will remain on Level 1. Besides, a level 2 check includes some basic test on data content (completeness, time stamping etc) and (suggested here) includes a basic comparison with submitted/accepted one-minute data products to evaluate the definitive character. If successful, a [IMBOT 1s report] is constructed (e.g. level2*.md) and the data set is assigned to a data checker for level 3 evaluation. Level 2 test are also performed completely automatically by IMBOT.
+Any uploaded data set which is readable and can be converted to an [IMAGCDF] format is automatically assigned to level 1. The uploaded data sets can be either [IAGA-2002] files or [IMAGCDF] files. Compressed archives containing these files using ZIP, GNUZIP and/or TAR are also supported. If the data set does not qualify for level 2, a file called **level1_underreview.md** will be created which provides information on the evaluation state of the data set. **underreview** indicates, that the data set can reach the next evaluation level if appropriate information is provided or data checking is finished. Reports will be send out to data suppliers. The most common issue preventing a level 2 classification is missing meta information. The submitting institute is asked to read the report carefully and solve the listed issues in order to reach level 2.
 
-##### Level 3
+#### Level 2
 
-The final level, Level 3, requires a review of the data set by a data checker, with the primary focus on data quality. As soon as level 2 is successfully obtained, a data checker is assigned and will get a basic evaluation summary from an automatic report by IMBOT. The data checker can directly focus on checking contents and data quality of the submitted data sets.
+Level 2 acceptance requires that all requested meta information is provided, including information on standard levels as outlined in the [IMAGCDF] format description, like timing accuracy, instruments noise levels etc. Besides, a level 2 check includes some basic test on data content (completeness, time stamping etc) and includes a basic comparison with submitted/accepted one-minute data products to evaluate the definitive character. If successful, a [IMBOT 1s report] is constructed (e.g. **level2_underreview.md**). Again data suppliers will receive a complete report. As soon as the underlying one-minute data product from the supplier is finally accepted, the one second data product is reevaluated and a data checker for final evaluation is assigned. All Level-tests are performed completely automatically by IMBOT.
 
 
-#### 2.3 Updating missing information 
+### 3.3 Updating missing information 
 
 After submitting your data, IMBOT will check your data for general readability and completeness. It will create a [IMBOT 1s report] which will be send to the submitting institute. 
 Within this report you will see, what level has been assigned to your submission. In dependency of this level, you eventually need to take action:  
 
-##### If your data was assigned level 0
+#### If your data was assigned level 0
 
 Your data could not be read or significant problems with your submission were encountered (e.g. no one second data, empty files). Please correct the issues and upload a new data set. If you do not know how to proceed, contact the IMBOT manager.
 
-##### If your data was assigned level 1
+#### If your data was assigned level 1
 
-Some meta information or data is missing. If data is missing, please upload such data files. If meta information is missing, please locate the "meta_OBSCODE.txt" file within the level directory and download this file. Please add any missing meta information into this file as outlined and described within this text file (an example is given below). Finally upload this meta_OBSCODE.txt file to the step1 upload directory. DO NOT CHANGE THE FILENAME. Uploading this file or any new data file will trigger an automatic re-evaluation.
-
-##### If your data was asigned level 2
-
-Everything is fine. There is nothing you need to do. A data checker will contact you regarding quality checks and final level assignment.
+Some meta information or data is missing. Please check the issue list in the level report you received. If data is missing, please upload such data files. If meta information is missing, please use "meta\_OBSCODE.txt" file also attached to your reporting e-mail. Please add any missing meta information into this file as outlined and described within this text file (an example is given below). Finally upload this meta\_OBSCODE.txt file to the step1 upload directory. DO NOT CHANGE THE FILENAME. Uploading this file or any new data file will trigger an automatic re-evaluation.
 
 
-##### Typical example of a meta_OBSCODE.txt file
+#### Typical example of a meta_OBSCODE.txt file
 
 ```sh
 ## Parameter sheet for additional/missing metainformation
@@ -87,16 +84,12 @@ TermsOfUse  :  Do whatever you want with my data
 ```
 
 
-##### Using meta_OBSCODE.txt with original submission
+#### Using meta_OBSCODE.txt with original submission
 
 It is possible to supply a meta_OBSCODE.txt file directly with original submission. If you submit [IAGA-2002] files some required information for creating INTERMAGNET CDF archives is always missing. By supplying this data directly with the submission, you can directly reach level 2 grades without any further updates.
 
-### 2.2 IMBOT one-minute
 
-For one-minute analysis, step1 minute data is vitually mounted on the IMBOT server. New or modified data sets will be identified by comparing directory contents with a local memory based on the last check. If new or updated data sets are found, then an initial read test on all data file will be performed using [MagPy]. If successful, all data sets will be supplied to [check1min] running in a [wine] emulation environment on the IMBOT server. The check1min report will be send to data submitters and referees along with some basic mail text eventually including a list of updated data sets. As soon as the data set is finally accepted and found as definitive data product on [NRCAN] then monitorinfg of step1 is stopped.
-
-
-## 3. Summary of all aspects checked
+### 3.4 Summary of all aspects checked by IMBOT one-second
 
 
  -   Submitted files and formats
@@ -117,7 +110,13 @@ For one-minute analysis, step1 minute data is vitually mounted on the IMBOT serv
         Finally, as the data product is termed "definitive", the consistency with submitted one-minute data products is tested. Like for data quality these tests are listed in the [IMBOT 1s report], but only severe differences between average monthly values of each component exceeding 0.3 nT might influence the assigned level. Besides, the standard deviation of the difference and individual maximal amplitude differences are tested and listed in the report. If amplitude differences are small e.g. below 0.1 nT, this indicates that obviously one-second data is the primary analyzed signal of the submitting institute, and all "cleaning" as been performed on this data set. Minute data is just a filtered product of the one-second data set. If larger amplitudes are observed, e.g. independent cleaning has been performed or even different instruments are used. 
 
 
-## 4. Results for a complete one-second analysis of 2016
+## 4. IMBOT one-minute
+
+For one-minute analysis, step1 minute data is virtually mounted on the IMBOT server. New or modified data sets will be identified by comparing directory contents with a local memory based on the last check. If new or updated data sets are found, then an initial read test on all data file will be performed using [MagPy]. If successful, all data sets will be supplied to [check1min] running in a [wine] emulation environment on the IMBOT server. The check1min report will be send to data submitters and referees along with some basic mail text eventually including a list of updated data sets. As soon as the data set is finally accepted and found as definitive data product on [NRCAN] then monitorinfg of step1 is stopped.
+
+
+
+## 5. Results for a complete one-second analysis of 2016
 
 Below a table summarizes IMBOT analyses of 2016. The 2016 analysis has also been used for development and error analysis of the underlying packages. IMBOT makes use of [MagPy] and requires version 0.9.7 or larger particularly for the one-minute data comparison, as some reading issues with [IAF] data have been solved in this version. All reports and converted files are readily available, but have not yet been send out to the submitting institute. As IMBOT firstly requires a conceptual acceptance from [INTERMAGNET] and reviews of its methodology, all these results are preliminary and do not indicate any decision from [INTERMAGNET]. 
 
@@ -180,17 +179,17 @@ UPS     |   2   |   IMAGCDF 1.2    |    0.9.1   |                     |         
 WIC     |   2   |   IMAGCDF 1.2    |    0.9.1   |                     |                      |
 
 
-## 5. Discussion
+## 6. Discussion
 
-### 5.1 Server issues 
+### 6.1 Server issues 
 
 With version 1.0.0, IMBOT requires that the GIN data source is mounted on the analysis server. At present this is done using an ftp mount based on curlftpfs. IMBOT solely analyses files within the step1/OBSCODE directory. Any further subdirectories are neglected. To minimize security issues it would be advisable to change from FTP access towards a more secure connection protocol in the future. Possible options which are easy to integrate would be ssl connections. The IMBOT server itself requires a suitable amount of memory in order to deal with yearly one-second data sets. In particular, if several data sets are uploaded at once, all analysis are performed in one run. The current hardware (8GB ram) allows for contemporaneous analysis of up to 10 records without memory issues, although this strongly depends on data content. Large data sets with high resolution scalar and temperature readings need significantly more memory. As it is rather unlikely that more than 10 data sets are uploaded within three hours of the year, this limitation should not be an issue. Nevertheless, failures are monitored and if the data submitter does not receive a [IMBOT 1s report] within 24 hours after submission, please contact the IMBOT manager. 
 
-### 5.2 Format issues
+### 6.2 Format issues
 
 Although IMBOT supports many different data formats and packing routines, it is not meant to be an universal interpreting machine. Please stick to the most common packing methods and avoid, if possible, commercial packing routines. Currently supported are [IAGA-2002] sec files, [IMAGCDF] files, as well as .tar, .tar.gz (.tgz) and .zip compressions. From the tested 2016 data set, 3 zipped records produced an "End-of-central-directory signature not found" error. IMBOT deals with such incomplete/corrupted files by using the external [7z] routine. Data content was fully recovered for all these files. Nevertheless, please check your files thoroughly before uploading. Data submission should be based preferably on [IMAGCDF] data or [IAGA-2002]. Please add any missing meta information within these data structures, or submit them along with your files by using the IMBOT meta file as described above. Nevertheless, there might be formatting and interpretation issues. You can easily test your files before: If [MagPy] can read and interpret the data sets, then IMBOT should be able as well. The version of MagPy, which is used for format conversion, is given in the [IMBOT 1s report].
 
-### 5.3 General issues
+### 6.3 General issues
 
 A couple of issues showed up while developing the program. A small list containing description and how it was solved is given below. This should provide an example on how upcoming issues should be reported. The project folder on GitHub provides an issue section where you can write down a detailed description. The developers are automatically informed. All user can access issues and comment on them. If an issue is solved, a reference to the changed code fragments and a description from the developers will be added before closing. Closed issues can always be accessed later. This way, IMBOT undergoes a permanent and transparent review process.  
  
@@ -240,31 +239,26 @@ A couple of issues showed up while developing the program. A small list containi
 > Dealing with this issue requires a decision by the definite data committee of IM.
 
 
-### 5.4 Test criteria
+### 6.4 Test criteria
 
 Currently it is an ongoing discussion which criteria and thresholds are necessary in order to evaluate submitted data sets. IMBOT makes use of a minimal approach. The highest automatic grade requires that the data sets are readable, complete and (correctly) contain all requested information for the [IMAGCDF] file format. There is no evaluation of data quality and only a single test regarding its definitive character, which was met by all submissions tested so far. Any test of data quality or more sophisticated analysis of its definitive character is currently subject of a final analysis by a human data checker.
 Nevertheless, it is suggested here that any submitted data set, which is readable and convertable, will already be accepted for step2 by INTERMAGNET using the IMBOT automatic procedure. As the data sets are automatically converted to a common data format, further data access is straight forward. A detailed level report allows to judge the classification for end users and eventually select data which suit their needs. Due to the detailed standard level description of the [IMAGCDF] format, a level 2 product already contains essential details on data quality as provided by the data submitter. Part of this information is cross checked by IMBOT (e.g. noiselevel). Based on this information it is suggested here that a level2 data set is complete, conclusive and usable for end users. From a modelers perspective, this information is sufficient to work with the data products.
 
 
-### 5.5 Open aspects for the future
+### 6.5 Open aspects for the future
 
-  - data checker duties
+  - data checker manual procedure for one-second
   - can data checker handle the files ?-> yes
-  - data checker mailing list (each one connected to a list of observatories, or random?)
-  - can submitter add a blacklist/whitelist on possible data checkers?
-  - resubmission (could be just done into step1 - datachecker is informed if level2 is satisfied)
   - is data quality a criteria (?) or just meta information 
-       - should there be something like level 3 or not?
-       - do we need grades at all?
-       - INTERMAGNET defined Standard levels for one second data. Which ones are obligatory to obtain highest grades?
+       - INTERMAGNET defined Standard levels for one second data. Which ones are obligatory to obtain final acceptance?
        - Noise level analysis is very simple at the moment, too be improved.
        - How to deal with amplitude deviations between definitive one-minute and definitive one-second?
 
-### 5.6 Further improvements
+### 6.6 Further improvements
 
 Suggested further improvements include a revision check. If no revision is performed or final revision requested for a certain time range, e.g. 3 months, than the current level of data submission is confirmed by simply renaming the "level1_underreview.txt" to "level1.txt". Obviously this can be done automatically as well.
 
-Although IMBOT has been created for definitive one-second data it can also be modified and used for other data sets as well. A possible application would be high resolution variation data which could be quickly checked with such routine and provided as a tested data product by INTERMAGNET basically on the fly. Further data sources might also be included. It is also not too difficult creating a similar routine helping with one-minute data analysis.
+Although IMBOT has been created for definitive one-second data it can also be modified and used for other data sets as well. A possible application would be high resolution variation data which could be quickly checked with such routine and provided as a tested data product by INTERMAGNET basically on the fly. Further data sources might also be included.
 
 IMBOT is written completely modular. Each checking technique is described and coded in an individual method. Thus, IMBOT can be simply extended or modified towards others tests and other data sets.
 

@@ -994,7 +994,7 @@ def WriteReport(destinationpath, parameterdict={}, reportdict={}, logdict={}, ta
         if len(warninglist) > 0 and level >= 1:
             text.append("\n### Too be considered for final evaluation\n")
             text.append("\n")
-            text.append("Level 3 considerations | Observered \n")
+            text.append("Considerations for manual checking | Observered \n")
             text.append("----- | -----\n")
             for warn in warninglist:
                 text.append(warn)
@@ -1201,7 +1201,7 @@ def CreateSecondMail(level, obscode, stationname='', year=2016, nameofdatachecke
 
     2.3. The report is titled "level2_underreview"
 
-         Your data set is accepted by INTERMAGNET and meets the criteria for final level 3 evaluation. 
+         Your data set is accepted by INTERMAGNET and meets the criteria for final evaluation. 
          Nevertheless, please check the report for suggested improvements and follow the steps 
          outlined in section 3 if you want to consider them for the final data product (not obligatory). 
          A reviewer will automatically be assigned, who will manually check your submission. You
@@ -1210,8 +1210,8 @@ def CreateSecondMail(level, obscode, stationname='', year=2016, nameofdatachecke
          it might need a while.
          Usually, a final data check summary is obtained within three months after level 2 submission. 
 
-         A level 3 evaluation contains a data quality check of your one second data product.
-         Failing a level 3 evaluation has no consequence for your INTERMAGNET status which is 
+         The final manual evaluation contains a data quality check of your one second data product.
+         Failing this evaluation has no consequence for your INTERMAGNET status which is 
          related to one-minute data. Anyway, please analyze any upcoming issues carefully:
          it might be useful to check your data preparation
          routines and might trigger improvements of instrumentation, 
