@@ -1177,7 +1177,7 @@ def CreateSecondMail(level, obscode, stationname='', year=2016, nameofdatachecke
     -----------------------------------------------------------------------------------
     Instructions to update files and meta information for re-evaluation of your data:
 
-    1. Do NOT edit any file in the submitting directories as long as you are NOT ready to submit a revised version
+    1. Do NOT edit any file in the submitting step1 directories as long as you are NOT ready to submit a revised version
 
     2. Check the report you received by mail for issues and suggested improvements
 
@@ -1194,18 +1194,19 @@ def CreateSecondMail(level, obscode, stationname='', year=2016, nameofdatachecke
 
     2.2. The report is titeled "level1_underreview"
 
-         Your data is provisionally accepted by INTERMAGNET.
+         Your data is almost acceptable by INTERMAGNET.
          There are, however, minor issues. Mostly some meta information, which is required for 
          INTERMAGNET archiving is missing. Please follow the instructions in section 3 of these 
          instructions on how to obtain a level 2 clearance.
 
     2.3. The report is titled "level2_underreview"
 
-         Your data set is accepted by INTERMAGNET and meets the criteria for final evaluation. 
+         Your data set meets all criteria of the automatic data check and is ready for final evaluation. 
          Nevertheless, please check the report for suggested improvements and follow the steps 
          outlined in section 3 if you want to consider them for the final data product (not obligatory). 
-         A reviewer will automatically be assigned, who will manually check your submission. You
-         will get a detailed report and contact information for the referee. Please note:
+         A reviewer will automatically be assigned abd contacted as soon as your one-minute 
+         product has been formally accepted.
+         Please note:
          Data checkers do all reviews and evaluation beside their usual duties. Depending on their workload
          it might need a while.
          Usually, a final data check summary is obtained within three months after level 2 submission. 
@@ -1231,9 +1232,11 @@ def CreateSecondMail(level, obscode, stationname='', year=2016, nameofdatachecke
 
     3.4 For data file updates:
         Upload the new/corrected files and replace/delete old files within
-        the step1 directory of the GIN. 
+        the step1 directory of the GIN. If you are uploading packed/zipped
+        archives, then make sure that data is located within the primary level
+        of this archive.
 
-    3.5 Within 24 hours after you finished your uploads
+    3.6 Within 24 hours after you finished your uploads
         an automatic (re)evaluation will be triggered.
 
     4. Problems
