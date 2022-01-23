@@ -205,8 +205,9 @@ def GetMonths(sourcepath, addinfo="/tmp", repdict={}):
         # need year for that
         # firstly read one file and extract year
         included_extensions = ['sec','SEC', 'cdf', 'CDF', 'gz', 'zip']
-        validfilenames = [fn for fn in os.listdir(sourcepath) if any(fn.endswith(ext) for ext in included_extensions)]
+        validfilenames = [fn for fn in os.listdir(sourcepath) if any([fn.endswith(ext) for ext in included_extensions])]
         # Delete all files with invalid names?
+        print (" Valid files for read test are:", validfilenames)
         try:
             testfile = os.path.join(sourcepath,validfilenames[0])
         except:
@@ -267,6 +268,25 @@ def ReadMonth(sourcepath, starttime, endtime, logdict={}, updateinfo={}, optiona
         data = data.trim(starttime=st,endtime=et)
         newmeta = ReadMetaData(sourcepath)
         if data.length()[0] > 1:
+            print (" -> second data: {}".format(data.length()[0]))
+            # drop flagged data
+            data = data.remove_flagged()
+            # drop temperature anad other columns
+            temp1 = data._get_column('t1')
+            temp2 = data._get_column('t2')
+            var = data._get_column('var1')
+            if len(temp1) > 0:
+                print (" Found temperature column")
+                data = data._drop_column('t1')
+                try:
+                    txt = "{}+/-{} degC".format(np.nanmean(temp1),np.nanstd(temp1))
+                    logdict['Temperature1 record contained'] = data.header.get('DataLeapSecondUpdated')
+                except:
+                    pass
+            if len(temp2) > 0:
+                data = data._drop_column('t2')
+            if len(var) > 0:
+                data = data._drop_column('var')
             cntbefore = data.length()[0]
             data = data.get_gaps()
             cntafter = int(data.length()[0])
@@ -656,7 +676,9 @@ def CheckDiffs2Minute(data, logdict, minutesource={}, obscode='',daterange=[],co
                 logdict['Definitive comparison'] = 'definitive one-minute not available or not readable'
                 mindata = DataStream()
         if minpath and mindata.length()[0] > 1:
+            print (" Creating backup of one second data...")
             secdata = data.copy()
+            print (" ... done")
             mindatadict, issuedict, warningdict = compare_meta(mindata.header,secdata.header,mindatadict,issuedict, warningdict, debug=debug)
             highresfilt = secdata.filter(missingdata='iaga')
             if debug:
@@ -1666,16 +1688,16 @@ def main(argv):
 
     ## 1.1 Get current directory structure of source
     currentdirectory, logdict = GetGINDirectoryInformation(source, checkrange=checkrange,obslist=obslist,excludeobs=excludeobs,debug=debug)
-    print ("Obtained Step1 directory: {}".format(currentdirectory))
+    print ("Obtained Step1 directory: {}".format([key for key in currentdirectory]))
 
     ## 1.2 Determine publication state and paths for minute data
     currentdirectory = add_minute_state(currentdirectory,minstep1dir,minstep2dir,minstep3dir, obslist=obslist)
 
-    print ("Previous uploads: ", memdict)
+    print ("Previous uploads: ", [key for key in memdict])
     ## 1.3 Subtract the two directories - only new files remain
     newdict, notification = GetNewInputs(memdict,currentdirectory)
 
-    print ("Got New uploads:", newdict)
+    print ("Got New uploads:", [key for key in newdict])
     # 2. For each new input --- copy files to a temporary local directory (unzip if necessary)
     logdict = CopyTemporary(newdict, tmpdir=tmpdir, logdict=logdict)
 
@@ -1693,15 +1715,20 @@ def main(argv):
     # 4.2 write analysis memory
     for key in newdict:
         memdict[key] = newdict[key]
-    print ("Updating Memory: {}".format(memdict))
+    if debug:
+        print ("Updating Memory: {}".format(memdict))
+    else:
+        print ("Updating Memory ...")
     success = WriteMemory(memory, memdict)
+    print ("... done")
 
     # 5. send a report to the IMBOT manager containing failed and successful analysis
 
     print ("---------------------------")
     print ("INFORMATION for BOT MANAGER")
     print ("---------------------------")
-    print ("Source", currentdirectory)
+    if debug:
+        print ("Source", currentdirectory)
     print ("Send to Telegram", notification)
     # TODO add ignored directories into the notification
 
