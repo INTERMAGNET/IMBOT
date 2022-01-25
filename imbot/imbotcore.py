@@ -500,7 +500,10 @@ def GetNewInputs(memory, newdict, simple=False, notification={}, notificationkey
             elif value != memory[key] and not simple:
                 memval = memory[key].get('moddict')
                 moddict = value.get('moddict')
-                changed = {k:v for k,v in moddict.items() if v != memval[k]} 
+                #for k,v in moddict.items():
+                #    print ("k", memval.get(k,'Not found'))
+                #    print ("v", v)
+                changed = {k:v for k,v in moddict.items() if v != memval.get(k,'Not found')} 
                 updatelist.append(key)
                 mod[key] = changed
                 out[key] = value

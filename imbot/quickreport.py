@@ -2,29 +2,12 @@
 # coding=utf-8
 
 """
-IMBOT - automatic analysis of one minute data
+IMBOT - produce reports for mail or messenger requests
 
-PREREQUISITES:
-
-  sudo pip3 install geomagpy>=1.0.1
-  sudo pip3 install telegram_send
-  sudo apt-get install curlftpfs
-  sudo apt install p7zip-full p7zip-rar
-
-  To transfer the JOB:
-   - cp IMBOT dictionary
-   - create DataCheck paths
-   - update analysis.sh
-   - cp mail and telegram.cfg (check/update contents)
-   - get ginsource file
-   - get analysis20xx.json
-   - add credentials
-   - test
-   - update crontab
 
 APPLICATION:
 
-  $PYTHON $APP -s $MINDIR -d $DESTINATION -t $TMPDIR -m $MEMORY -n /etc/martas/telegram.cfg -e $CFGDIR -q $QUIETDAYLIST -p $OBSTESTLIST -o $OBSLIST
+/usr/bin/python3 /home/cobs/Software/IMBOT/imbot/quickreport.py -m /home/cobs/IMANALYSIS/Datacheck/second/sec_analysis2020.json -l /srv/imbot/second/2020/level -D
 
 """
 
@@ -232,11 +215,10 @@ def main(argv):
     elif job == 'runtime':
         table = create_runtime_table(logpath=obslogpath)
 
-    print (table)
+    #print (table)
     table = "```\n{}\n```".format(table)
-    if telegramconf:
+    if telegramconf and not debug:
         telegram_send.send(messages=[table], conf=telegramconf, parse_mode="Markdown")
-
 
 
 if __name__ == "__main__":

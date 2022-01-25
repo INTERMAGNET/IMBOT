@@ -836,6 +836,8 @@ def main(argv):
         stforget,noti = GetNewInputs(step2, st1new, simple=True, notification=noti, notificationkey='Reached step2', debug=False)
         print ("2", noti)
         #  1.2.3 Get changed records
+        print (memdict)
+        print (st1new)
         newdict, notification = GetNewInputs(memdict, st1new, simple=False, notification=noti)
         print (" -> removed all obscodes which have been moved/copied to step3") 
         print ("    result: {}".format(notification))
@@ -847,6 +849,7 @@ def main(argv):
 
     if debug:
         print ("Got New uploads:", newdict)
+
     # 2. For each new input --- copy files to a temporary local directory (unzip if necessary)
     logdict = CopyTemporary(newdict, tmpdir=tmpdir, logdict=logdict)
 
