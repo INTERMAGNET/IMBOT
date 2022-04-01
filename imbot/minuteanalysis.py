@@ -139,7 +139,7 @@ def CreateMinuteMail(level, obscode, stationname='', year=2016, nameofdatachecke
             maintext =  "Dear data submitter,\n\nyou receive the following information as your e-mail address is connected to submissions of geomagnetic data products from {} observatory.\nYour one-minute data submission for {} has been automatically evaluated by IMBOT, an automatic data checker of INTERMAGNET.\n\nThe evaluation process resulted in\n\n".format(obscode, year)
 
 
-        maintext += "LEVEL {}".format(level)
+        #maintext += "LEVEL {}".format(level)
 
         if int(level) == 0:
             maintext += "    ISSUES to be resolved\n\n"
@@ -623,7 +623,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
 def main(argv):
     imbotversion = '1.0.4'
-    checkrange = 0 #3 # 3 hours
+    checkrange = 2 #3 # 3 hours
     statusmsg = {}
     obslist = []
     excludeobs = []
