@@ -2,6 +2,11 @@
 # An automatic data checker for one second data.
 -------------------------------------------------
 
+####<1.0.5>, <2022-09-30> --
+
+1.0.5 additions:
+    + added the possibility to use yearly different mailing lists for referees and receivers
+
 ####<1.0.4>, <2022-01-11> --
 
 1.0.4 general:
@@ -10,7 +15,7 @@
       evaluation
     + checking step3 for stop monitoring of step1 minute
     + e-mail notification updates and corrections
-    + including all suggestions from IM data committee meeting 
+    + including all suggestions from IM data committee meeting
       - using step3 minute data as prerequisite for proceeding with one-second
       - remove statements with "provisionally accepted"
       - adept code procedure
@@ -32,7 +37,7 @@
     + configuration with separate scripts
     + configuration parameters in separate repository
     + full e-mail support for data suppliers, referees and managers
-    + one-minute mails without "preliminary" notification 
+    + one-minute mails without "preliminary" notification
 
 1.0.3 fixed:
     + Improved/Extended e-mail notifications
@@ -56,7 +61,7 @@
 ####<1.0.1>, <2021-01-14> --
 
 1.0.1 general:
-    + version 1.0.1 
+    + version 1.0.1
     + Python3 compatible
     + requires MagPy >= 0.9.9
 
@@ -66,7 +71,7 @@
 
 1.0.1 additions:
     + activated email and telegram notifcations
-    + added testing optinons (a list of Observatory codes can be provided) 
+    + added testing optinons (a list of Observatory codes can be provided)
        -> only these observatories will get notifications, only these data sets are uploaded to GIN level
     + alternative mail lists working
     + bash script supports upload to GIN (level structure is implemented since 2021-01-14)
@@ -86,7 +91,6 @@
 1.0.0 additions:
     - activated email and telegram notifcations
        -> at present, emails are only send to IMBOT manager (hard coded)
-    + provide data checker list 
+    + provide data checker list
     + uncomment line 1534: #maildict['To'] = email
     + eventually provide alternative mail list and check lines 1500ff
-

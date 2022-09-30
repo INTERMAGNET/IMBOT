@@ -29,7 +29,7 @@ APPLICATION:
 
 
 TODO:
- - Submission formats and compression are highly variable. Although only two general underlying formats have been used, various different packing/archiving routines are used. 
+ - Submission formats and compression are highly variable. Although only two general underlying formats have been used, various different packing/archiving routines are used.
 
  - Detailed instructions for submitters
     -> only single level in compressed files
@@ -115,7 +115,7 @@ def update_contacts(contactdict, localmailinglist):
     # add contactdict / overwrite if different
     if d:
         for key, value in d2.items():
-            if not (d2.get(key,[]) == []):                
+            if not (d2.get(key,[]) == []):
                 d[key] = value
     else:
         d = d2
@@ -253,7 +253,7 @@ def ReadMonth(sourcepath, starttime, endtime, logdict={}, updateinfo={}, optiona
         issues = {}
         issues=logdict.get('Issues',{})
         improvements = {}
-        warningdict = {}   # warnings are included and marked too-be-checked in summaries for data checkers for level 3 acceptance 
+        warningdict = {}   # warnings are included and marked too-be-checked in summaries for data checkers for level 3 acceptance
         warningdict=logdict.get('Warnings',{})
         #print ("Reading data from {} to {}".format(starttime,endtime))
         st = datetime.strptime(starttime,'%Y-%m-%d')+timedelta(days=1)
@@ -387,13 +387,13 @@ def DeltaFTest(data, logdict):
             if scal=='f':
                 ftest = ftest.delta_f()
             #TODO proper treatment of -S values in delta_f in MagPy
-            # or ignore: G is quality value for variometer data and 
+            # or ignore: G is quality value for variometer data and
             #should be provided for existing variometer values.
-            # If F(S) should be provided, an independent measurement with 
+            # If F(S) should be provided, an independent measurement with
             # with eventually different sampling rate or data value at non-existing
             # variometer data, then please provide it as S. G can be easily calculated
             #quick workaround -> exclude large negative  values
-            ftest = ftest.extract('df',-15000,'>')    
+            ftest = ftest.extract('df',-15000,'>')
 
             fmean, fstd = ftest.mean('df',std=True)
             logdict['delta F'] = "mean delta F of {:.3f} with a std of {:.3f}".format(fmean,fstd)
@@ -419,7 +419,7 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
         """
         DESCRIPTION
             extracting Standard levels as required from ImagCDF and creating a table.
-            Some contents will be checked 
+            Some contents will be checked
 
         STANDARD LEVELS
             as contained in variable partial
@@ -444,13 +444,13 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
             IMOS-42  Compulsory vector magnetometer temperature measurements with a resolution of 0.1°C at a minimum sample period of one minute
 
         VARIABLES
-            data    (MagPy DataStream) 	: data and meta information 
-            partiacheck   (dict) 	: contains Standard levels and their description 
+            data    (MagPy DataStream) 	: data and meta information
+            partiacheck   (dict) 	: contains Standard levels and their description
             logdict	(dict)		: logdict with Issue information
 
         RETURN
             table with (list) with partial standard description and whether these points are met/considered
-            logdict with an updated Issue subdictionary 
+            logdict with an updated Issue subdictionary
         """
         issuedict = {}
         issuedict=logdict.get('Issues',{})
@@ -464,10 +464,10 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
                 tableline.append(partialcheck.get(key))
                 if key == 'IMOS41' and (logdict.get('F') in ['None',''] or logdict.get('F').startswith('found no')):
                     tableline.append('confirmed but invalid')
-                    issuedict['StandardLevel - IMOS41'] = 'criteria not met' 
+                    issuedict['StandardLevel - IMOS41'] = 'criteria not met'
                 elif key == 'IMOS42' and logdict.get('T') in ['None','']:
                     tableline.append('confirmed but invalid')
-                    issuedict['StandardLevel - IMOS42'] = 'criteria not met' 
+                    issuedict['StandardLevel - IMOS42'] = 'criteria not met'
                 else:
                     tableline.append('validity confirmed by submitter')
                 tablelist.append(tableline)
@@ -483,19 +483,19 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
                         tableline.append('validity confirmed by submitter')
                         if key == 'IMOS41' and (logdict.get('F') in ['None',''] or logdict.get('F').startswith('found no')):
                             tableline.append('confirmed but invalid')
-                            issuedict['StandardLevel - IMOS41'] = 'criteria not met' 
+                            issuedict['StandardLevel - IMOS41'] = 'criteria not met'
                         elif key == 'IMOS42' and logdict.get('T') in ['None','']:
                             tableline.append('confirmed but invalid')
-                            issuedict['StandardLevel - IMOS42'] = 'criteria not met' 
+                            issuedict['StandardLevel - IMOS42'] = 'criteria not met'
                     else:
                         tableline.append('not met as confirmed by submitter')
                 except:
                     tableline.append('information missing')
-                    issuedict['PartialStandDesc'] = 'PartialStandDesc required for partial - see TN8: 4.7 Relevant data standards' 
+                    issuedict['PartialStandDesc'] = 'PartialStandDesc required for partial - see TN8: 4.7 Relevant data standards'
                 tablelist.append(tableline)
         else:
-            issuedict['StandardLevel'] = 'StandardLevel full or partial - see TN8: 4.7 Relevant data standards' 
-            issuedict['PartialStandDesc'] = 'PartialStandDesc required for partial - see TN8: 4.7 Relevant data standards' 
+            issuedict['StandardLevel'] = 'StandardLevel full or partial - see TN8: 4.7 Relevant data standards'
+            issuedict['PartialStandDesc'] = 'PartialStandDesc required for partial - see TN8: 4.7 Relevant data standards'
             for key in partialcheck:
                 tableline = []
                 tableline.append(key)
@@ -511,7 +511,7 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
 def compare_meta(minhead,sechead,mindatadict,issuedict, warningdict, debug=False):
     """
     DESCRIPTION:
-        compare meta information of second and minutedata 
+        compare meta information of second and minutedata
     """
     if debug:
         print ("Minute data header: {}".format(minhead))
@@ -553,8 +553,8 @@ def compare_meta(minhead,sechead,mindatadict,issuedict, warningdict, debug=False
                         print (" Found diff for {}: {} (sec) vs {} (min)".format(keyname, refvalue, compvalue1))
                     #mindatadict['meta-info diff'] = "{}: {} (sec) vs {} (min)".format(keyname, refvalue, compvalue1)
         if diffcnt == 0:
-            mindatadict['meta-info diff'] = "meta info fits well to data provided in minute data (note: location data compared at accuracy of 2 digits)".format(keyname, refvalue, compvalue1) 
-        else:   
+            mindatadict['meta-info diff'] = "meta info fits well to data provided in minute data (note: location data compared at accuracy of 2 digits)".format(keyname, refvalue, compvalue1)
+        else:
             issuedict['meta-info minute vs second data'] = "differences observed - see below"
     else:
         mindatadict['meta-info minute vs second data'] = "could not access meta information"
@@ -594,14 +594,14 @@ def CheckDiffs2Minute(data, logdict, minutesource={}, obscode='',daterange=[],co
             - since 1.0.4: basic meta data
         EXPECTED VALUES
             1. average difference needs to be zero, its distribution below the "numerical noise"
-            (numerial noise arises from the 0.1 nT resolution if IAF data and the < 0.01 nT 
-             resolution of one second data and its filtered product; ) 
+            (numerial noise arises from the 0.1 nT resolution if IAF data and the < 0.01 nT
+             resolution of one second data and its filtered product; )
             2. maximal amplitudes shoud be in the order of the numerical noise
         CONSEQUENCES
             If the mean difference is significantly larger than zero, both for daily means and monthly
             mean, then both data sets are termed "different" and the submitting institue needs to clarify
             which one is definitive (data remains on level 1)
-            Individual difference spikes and larger deviations indicate that one or a combination 
+            Individual difference spikes and larger deviations indicate that one or a combination
             of different filtering procedures, different outlier treatment, gap treatment, baseline methods,
             or different instruments with other noise characteristics are used for the data sets.
             The average differences are listed in the report, to be considered for level 3 evaluation.
@@ -618,8 +618,8 @@ def CheckDiffs2Minute(data, logdict, minutesource={}, obscode='',daterange=[],co
         if debug:
             print ("Minute source:", minutesource, minstep, minpath)
 
-        def most_frequent(List): 
-            return max(set(List), key = List.count) 
+        def most_frequent(List):
+            return max(set(List), key = List.count)
 
         # get the pathname
         def pathname(minutesource, obscode, typ='data'):
@@ -682,7 +682,7 @@ def CheckDiffs2Minute(data, logdict, minutesource={}, obscode='',daterange=[],co
             mindatadict, issuedict, warningdict = compare_meta(mindata.header,secdata.header,mindatadict,issuedict, warningdict, debug=debug)
             highresfilt = secdata.filter(missingdata='iaga')
             if debug:
-                print ("  -> seconddata filtered to one-minute using iaga standard filter") 
+                print ("  -> seconddata filtered to one-minute using iaga standard filter")
             diff = subtractStreams(highresfilt,mindata,keys=['x','y','z'])
             if debug:
                 print ("  -> diff calculated")
@@ -711,16 +711,16 @@ def CheckDiffs2Minute(data, logdict, minutesource={}, obscode='',daterange=[],co
             if debug:
                 print ("  -> dictionary written")
             if max(xd,yd,zd) > 0.3:
-                warningdict['Definitive differences'] = 'one-minute and one-second data differ by more than 0.3 nT in monthly average' 
-                logdict['Definitive differences'] = 'One-minute and one-second data differ by more than 0.3 nT in a monthly average' 
+                warningdict['Definitive differences'] = 'one-minute and one-second data differ by more than 0.3 nT in monthly average'
+                logdict['Definitive differences'] = 'One-minute and one-second data differ by more than 0.3 nT in a monthly average'
             if max(xa,ya,za) < 0.12:
-                logdict['Definitive comparison'] = 'excellent agreement between definitive one-minute and one-second data products' 
+                logdict['Definitive comparison'] = 'excellent agreement between definitive one-minute and one-second data products'
             elif max(xa,ya,za) <= 0.3:
-                logdict['Definitive comparison'] = 'good agreement between definitive one-minute and one-second data products' 
+                logdict['Definitive comparison'] = 'good agreement between definitive one-minute and one-second data products'
             elif max(xa,ya,za) > 0.3 and max(xa,ya,za) <=5:
                 logdict['Definitive comparison'] = 'small differences in peak amplitudes between definitive one-minute and one-second data products observed'
             elif max(xa,ya,za) > 5:
-                warningdict['Definitive comparison'] = 'Large amplitude differences between definitive one-minute and one-second data products' 
+                warningdict['Definitive comparison'] = 'Large amplitude differences between definitive one-minute and one-second data products'
                 logdict['Definitive comparison'] = 'Large amplitude differences between definitive one-minute and one-second data products'
             if np.isnan(sum([xd,yd,zd,xa,ya,za])):
                 logdict['Definitive comparison'] = 'not conclusive as NAN values are found'
@@ -796,8 +796,8 @@ def PowerAnalysis(dailystreamlist, readdict, period=10.):
             calculates mean noise level below a certain threshold period (e.g. 10sec)
             from each daily stream
         RETURNS
-            dictionary input at "Noiselevel" containing the arithmetic mean of all noiselevels  
-            dictionary input at "NoiselevelStdDeviation" containing the StandardDeviation of all noiselevels  
+            dictionary input at "Noiselevel" containing the arithmetic mean of all noiselevels
+            dictionary input at "NoiselevelStdDeviation" containing the StandardDeviation of all noiselevels
         """
         print ("Running Power Analysis for {} records".format(len(dailystreamlist)))
         if len(dailystreamlist) > 0:
@@ -810,7 +810,7 @@ def PowerAnalysis(dailystreamlist, readdict, period=10.):
 
                 if dayst.length()[0]>0:
                     try:
-                        #print( "getting power") 
+                        #print( "getting power")
                         (psdm, asdm, freqm) = GetDayPSD(dayst, 'x')
                         #print( "getting power 2", len(asdm))
                         asdmar = np.asarray(asdm)
@@ -839,7 +839,7 @@ def PowerAnalysis(dailystreamlist, readdict, period=10.):
 def ExportMonth(destinationpath, data, logdict={}):
         """
         DESCRIPTION
-            exporting final data to an monthly IMAGCDF file 
+            exporting final data to an monthly IMAGCDF file
         """
         success = True
         print ("Writing IMAGCDF file")
@@ -1168,19 +1168,19 @@ def CreateSecondMail(level, obscode, stationname='', year=2016, nameofdatachecke
         if minutestate in ['','step0','step1','step2',None]:
             maintext += "!! Please note: this is just a preliminary evaluation result as your obligatory one-minute data product has not yet been finally accepted. "
             if minutestate in ['','step0',None]:
-                maintext += "Currently there is no one-minute data available. "  
+                maintext += "Currently there is no one-minute data available. "
             else:
-                maintext += "Your one-minute data is currently on {}. ".format(minutestate)  
-            maintext += "You will receive an update of your evaluation report whenever your one-minute data reaches the next step. If corrections to your one-second product are suggested in the following, please perform those already now in order to speed up the final acceptance process.\n\n"  
+                maintext += "Your one-minute data is currently on {}. ".format(minutestate)
+            maintext += "You will receive an update of your evaluation report whenever your one-minute data reaches the next step. If corrections to your one-second product are suggested in the following, please perform those already now in order to speed up the final acceptance process.\n\n"
             time = 'will be'
             last = ' as soon as your one-minute data is finally accepted.'
         else:
             time = 'has been'
             last = ". Your data checker is {}.\nPlease note that INTERMAGNET data checkers perform all check on voluntary basis beside their usual duties. So please be patient. The data checker will contact you if questions arise".format(nameofdatachecker)
 
-        level0 = "Level 0 means that your data did not pass the automatic reading and conversion test. Please update your data submission.\nOften a level 0 report is connected to corrupted files.\nPlease read the attached report and instructions before re-submission.\n\n" 
+        level0 = "Level 0 means that your data did not pass the automatic reading and conversion test. Please update your data submission.\nOften a level 0 report is connected to corrupted files.\nPlease read the attached report and instructions before re-submission.\n\n"
         level1 = "Level 1 indicates that your data is almost ready for final reviews. In order to continue the evaluation process some issues need to be clarified. Please read the attached report and follow the instructions. In most cases obligatory meta-information is missing. You can easily provide that by filling out and uploading the attached meta_{}.txt file.\n\n".format(obscode)
-        
+
         level2 = "Congratulations! Your data fulfills all requirements of the automatic checking process. A level 2 data product is an excellent source for high resolution magnetic information. Your data set {} assigned to an INTERMAGNET data checker for final decision{}\n\n".format(time,last)
 
         if int(level) == 0:
@@ -1204,40 +1204,40 @@ def CreateSecondMail(level, obscode, stationname='', year=2016, nameofdatachecke
     2. Check the report you received by mail for issues and suggested improvements
 
          The report is a text file in markdown language. You can read it in any text editor
-         or you might choose a special markdown editor (e.g. https://dillinger.io/)  
+         or you might choose a special markdown editor (e.g. https://dillinger.io/)
 
     2.1. The report is titled "level0_underreview"
 
          There are general problems with file structure, data files, or
-         readability of your files. Eventually a file got corrupted during upload. Please 
+         readability of your files. Eventually a file got corrupted during upload. Please
          check the submitted files and convert them either to IAGA-2002 and or IMAGCDF.
-         Data which can be read by MagPy can usually also be analyzed. Please upload 
+         Data which can be read by MagPy can usually also be analyzed. Please upload
          corrected files into the step1 directory of the GIN.
 
     2.2. The report is titeled "level1_underreview"
 
          Your data is almost acceptable by INTERMAGNET.
-         There are, however, minor issues. Mostly some meta information, which is required for 
-         INTERMAGNET archiving is missing. Please follow the instructions in section 3 of these 
+         There are, however, minor issues. Mostly some meta information, which is required for
+         INTERMAGNET archiving is missing. Please follow the instructions in section 3 of these
          instructions on how to obtain a level 2 clearance.
 
     2.3. The report is titled "level2_underreview"
 
-         Your data set meets all criteria of the automatic data check and is ready for final evaluation. 
-         Nevertheless, please check the report for suggested improvements and follow the steps 
-         outlined in section 3 if you want to consider them for the final data product (not obligatory). 
-         A reviewer will automatically be assigned abd contacted as soon as your one-minute 
+         Your data set meets all criteria of the automatic data check and is ready for final evaluation.
+         Nevertheless, please check the report for suggested improvements and follow the steps
+         outlined in section 3 if you want to consider them for the final data product (not obligatory).
+         A reviewer will automatically be assigned abd contacted as soon as your one-minute
          product has been formally accepted.
          Please note:
          Data checkers do all reviews and evaluation beside their usual duties. Depending on their workload
          it might need a while.
-         Usually, a final data check summary is obtained within three months after level 2 submission. 
+         Usually, a final data check summary is obtained within three months after level 2 submission.
 
          The final manual evaluation contains a data quality check of your one second data product.
-         Failing this evaluation has no consequence for your INTERMAGNET status which is 
+         Failing this evaluation has no consequence for your INTERMAGNET status which is
          related to one-minute data. Anyway, please analyze any upcoming issues carefully:
          it might be useful to check your data preparation
-         routines and might trigger improvements of instrumentation, 
+         routines and might trigger improvements of instrumentation,
          powering systems and, eventually, instruments location.
 
     3. You are ready to perform updates to your submission
@@ -1248,8 +1248,8 @@ def CreateSecondMail(level, obscode, stationname='', year=2016, nameofdatachecke
         step1 directory of the GIN.
 
     3.3 For meta information updates:
-        Please use the "meta_OBSCODE.txt" template attached to this mail or download it 
-        from the GIN within directory year/"OBSCODE". 
+        Please use the "meta_OBSCODE.txt" template attached to this mail or download it
+        from the GIN within directory year/"OBSCODE".
         Please add the requested meta data into this file.
 
     3.4 For data file updates:
@@ -1352,7 +1352,7 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     # -----------
                     if debug:
                         print ("Header looks like:", mdata.header)
-                    
+
                     if mdata.length()[0] > 0:
 
                         if debug:
@@ -1420,7 +1420,7 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 print ("-----------------------------")
                 if debug:
                     print ("Start reporting ...")
-                    
+
                 readdict['MagPyVersion'] = magpyversion
 
                 # perform noise analysis on selcted days
@@ -1443,7 +1443,10 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 # -----------
                 level = WriteReport(destinationpath, para, readdict, logdict, tablelist=tablelist,year=readdict.get("Year"))
                 print (" Asigning data checker")
-                nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist_second.cfg"))
+                pathreferee = check_path_year(os.path.join(pathemails,"refereelist_second.cfg"),readdict.get("Year"))
+                if debug:
+                    print ("Loading referees from {}".format(pathreferee))
+                nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),pathreferee)
                 try:
                     stationname = readdict.get('1').get('Header').get('StationName','')
                 except:
@@ -1456,7 +1459,8 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
                 # Create mailing list
                 # -----------
-                email, managermail = ObtainEmailReceivers(logdict, para.get('obscode'), os.path.join(pathemails,"mailinglist_second.cfg"), referee, localmailinglist= os.path.join(destination,"localmailrep.json"), debug=debug)
+                pathmailinglist = check_path_year(os.path.join(pathemails,"mailinglist_second.cfg"),readdict.get("Year"))
+                email, managermail = ObtainEmailReceivers(logdict, para.get('obscode'), pathmailinglist, referee, localmailinglist= os.path.join(destination,"localmailrep.json"), debug=debug)
                 print ("=> sending to {}".format(email))
 
                 print ("---------------------------- ")
@@ -1496,7 +1500,7 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     if debug:
                         print ("  mail dictionary:", maildict)
                     sm(maildict)
-                    print (" -> DONE: mail and report send") 
+                    print (" -> DONE: mail and report send")
                 else:
                     print ("!! Could not find mailconfiguration - skipping mail transfer !!")
                     #logdict['Not yet informed'].append(para.get('obscode'))
@@ -1526,7 +1530,7 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                   try:
                     if sourcepath.find(para.get('obscode')) > -1:
                         # just make sure that temporary information is only deleted for the current path
-                        # it might happen that treatment/read failures keep some old information in dicts  
+                        # it might happen that treatment/read failures keep some old information in dicts
                         print (" Cleaning up temporary folder ", sourcepath)
                         shutil.rmtree(sourcepath, ignore_errors=True)
                   except:
@@ -1553,6 +1557,7 @@ def main(argv):
     pathminute = ''
     pathemails = ''
     tele = ''
+    year = 1971
     logpath = '/var/log/magpy'
     mailcfg = '/etc/martas'
     quietdaylist = ['2016-01-25','2016-01-29','2016-02-22','2016-03-13','2016-04-01','2016-08-28','2016-10-21','2016-11-05','2016-11-17','2016-11-19','2016-11-30','2016-12-01','2016-12-03','2016-12-04']
@@ -1565,9 +1570,9 @@ def main(argv):
     minstep1dir,minstep2dir,minstep3dir = '','',''
 
     try:
-        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:j:k:e:l:c:p:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutestep1=","minutestep2=","minutestep3=","emails=","logpath=","mailcfg=","testobslist=","debug=",])
+        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:j:k:e:l:c:p:y:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutestep1=","minutestep2=","minutestep3=","emails=","logpath=","mailcfg=","testobslist=","debug=",])
     except getopt.GetoptError:
-        print ('secondanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutestep1> -j <minutestep2> -k <minutestep3> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist>')
+        print ('secondanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutestep1> -j <minutestep2> -k <minutestep3> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist> -y <year>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -1600,6 +1605,7 @@ def main(argv):
             print ('-n            : path for telegram configuration file for notifications')
             print ('-c            : path for mail configuration file "mail.cfg" - default is /etc/martas')
             print ('-l            : path for logs and logging info, default is /var/log/magpy')
+            print ('-y            : year')
             print ('-------------------------------------')
             print ('Example of memory:')
             print ('-------------------------------------')
@@ -1631,9 +1637,6 @@ def main(argv):
             quietdaylist = arg.split(',')
         elif opt in ("-o", "--observatories"):
             obslist = arg.replace(" ","").split(',')
-            if 'REFEREE' in obslist:
-                obslist = GetObsListFromChecker(obslist, os.path.join(pathemails,"refereelist_second.cfg"))
-            print (" OBSLIST provided: dealing only with {}".format(obslist))
         elif opt in ("-x", "--exclude"):
             excludeobs = arg.replace(" ","").split(',')
         elif opt in ("-n", "--notify"):
@@ -1647,8 +1650,17 @@ def main(argv):
                 testobslist = []
             else:
                 testobslist = arg.split(',')
+        elif opt in ("-y", "--year"):
+            year = int(arg)
         elif opt in ("-D", "--debug"):
             debug = True
+
+    if 'REFEREE' in obslist:
+        pathreferee = check_path_year(os.path.join(pathemails,"refereelist_second.cfg"),year)
+        if debug:
+            print ("Loading referees from {}".format(pathreferee))
+        obslist = GetObsListFromChecker(obslist, pathreferee)
+        print (" OBSLIST provided: dealing only with {}".format(obslist))
 
     if debug and source == '':
         print ("Basic code test - done")

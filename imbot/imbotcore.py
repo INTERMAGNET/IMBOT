@@ -37,9 +37,9 @@ partialcheck_v1 = {
 		'IMOS-42' : 'Compulsory vector magnetometer temperature measurements with a resolution of 0.1°C at a minimum sample period of one minute'
 		}
 
-IMAGCDFKEYDICT = {     'FormatDescription':'DataFormat', 
-                       'IagaCode':'StationID', 
-                       'ElementsRecorded':'DataComponents', 
+IMAGCDFKEYDICT = {     'FormatDescription':'DataFormat',
+                       'IagaCode':'StationID',
+                       'ElementsRecorded':'DataComponents',
                        'ObservatoryName':'StationName',
                        'Latitude':'DataAcquisitionLatitude',
                        'Longitude':'DataAcquisitionLongitude',
@@ -123,16 +123,16 @@ def GetGINDirectoryInformation(sourcepath, flag=None, checkrange=2, obslist=[],e
             Method will check directory structure of the STEP1 one second directory
             It will extract directory, amount of files, filetype, and last modification date
             ** NEW Version 1.0.4**
-            - modified files will be logged 
+            - modified files will be logged
             - test environment for this method
             - would it not be better to use obscode as key and root path as value?
             - added flag (can be step1, step2, step3)
             - new name: GetGINDirectoryInformation
             ** NEW Version 1.0.4**
         RETURN:
-            storage   DICT  a dictionary with key root path (.../WIC) and values {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode} ** NEW Version 1.0.4** 'moddict': {file1 : modtime1, file2 : modtime2, ...} 
-            logdict   DICT 
-        
+            storage   DICT  a dictionary with key root path (.../WIC) and values {'amount': amount, 'type': typ, 'lastmodified': youngest, 'obscode': obscode} ** NEW Version 1.0.4** 'moddict': {file1 : modtime1, file2 : modtime2, ...}
+            logdict   DICT
+
         APPLICTAION:
             to check step 1 one second directory for new or modified data sources
             Suggested technique for updating previously submitted and updated step10,level1, and level2 data:
@@ -271,7 +271,7 @@ def GetObsListFromChecker(obslist=[],path="/path/to/refereelist.cfg"):
             if len(obslist) > 0:
                 if len(fullobslist) > 0:
                     fullobslist.extend(obslist)
-                else: 
+                else:
                     fullobslist = obslist
         if len(cleanobslist) > 0:
             fullobslist.extend(cleanobslist)
@@ -313,7 +313,7 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, localmailinglis
             with open(localmailinglist) as json_file:
                 d3 = json.load(json_file)
             localmails = d3.get(obscode,[])
-        except:            
+        except:
             localmails = []
 
         # if alternative email contacts are provided, then use those
@@ -331,7 +331,7 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, localmailinglis
             emails = contacts
         else:
             emails = localmails
-        
+
         manager = GetMailFromList('manager', mailinglist)
         if not isinstance(manager, list):
             manager = [manager]
@@ -381,6 +381,21 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, localmailinglis
 
         return email, managermail
 
+def check_path_year(path,year):
+	"""
+    if pathname xxx.cfg exists with year (i.e. xxx2020.cfg)
+    then return the name with year
+	"""
+    dirname = os.path.dirname(path)
+    basename = os.path.basename(path)
+    blist = basename.split(".")
+    blist.insert(-1,year)
+    blist.insert(-1,".")
+    newpath = os.path.join(dirname,"".join(blist))
+    if os.path.isfile(newpath):
+        return newpath
+    else:
+        return path
 
 def ExtractEMails(path):
         """
@@ -479,7 +494,7 @@ def GetNewInputs(memory, newdict, simple=False, notification={}, notificationkey
         """
         DESCRIPTION
             will return a dictionary with key/value pairs from dir analysis
-            which are not in memory. 
+            which are not in memory.
              simple only compare keys
         TESTING:
             mem = ma.ReadMemory('/home/leon/Tmp/Mag2020/mem.json')
@@ -504,7 +519,7 @@ def GetNewInputs(memory, newdict, simple=False, notification={}, notificationkey
                 #for k,v in moddict.items():
                 #    print ("k", memval.get(k,'Not found'))
                 #    print ("v", v)
-                changed = {k:v for k,v in moddict.items() if v != memval.get(k,'Not found')} 
+                changed = {k:v for k,v in moddict.items() if v != memval.get(k,'Not found')}
                 updatelist.append(key)
                 mod[key] = changed
                 out[key] = value
@@ -632,4 +647,3 @@ def CopyTemporary(pathsdict, tmpdir="/tmp", logdict={}):
             logdict['temporaryfolder'] = newdir
 
         return logdict
-

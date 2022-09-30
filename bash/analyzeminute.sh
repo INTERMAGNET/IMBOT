@@ -11,7 +11,7 @@
 #
 # PARAMETER and PREREQUISITES
 # ---------------------------
-# A basic prerequisite is python3 and the magpy package (>=0.9.7). Further recommended packages are 
+# A basic prerequisite is python3 and the magpy package (>=0.9.7). Further recommended packages are
 # telegram_send (for notifications), ...
 # You need to specify the following parameters
 #  TMPDIR:      a local folder with at least 200MB memory
@@ -21,15 +21,15 @@
 #
 # APPLICATION
 # -----------
-# Use a separate analysis script for each year. The analysis script should be scheduled to be run at least 
+# Use a separate analysis script for each year. The analysis script should be scheduled to be run at least
 # once every day. The analysis (particularly the checking of all mounted directories currently needs up to two hours (TODO).
-# Therefore, an execution of this script more often than every three hours is not advisable, if institutes upload 
+# Therefore, an execution of this script more often than every three hours is not advisable, if institutes upload
 # several data sets of multiple observatories at once.
 #
 # MONITORING
 # -----------
 # The script makes use of a small python application which allows for sending telegram notifications based on
-# MARTAS (https://github.com/geomagpy/martas.git) logging method, i.e. whenever a state is changing. You can also pipe the output of the script into a log 
+# MARTAS (https://github.com/geomagpy/martas.git) logging method, i.e. whenever a state is changing. You can also pipe the output of the script into a log
 # file and use other monitoring methods like Nagios etc for checking the run time state of the bash script.
 #
 # ginsource.sh:
@@ -112,7 +112,7 @@ if grep -qs "$MOUNTMINSTEP1" /proc/mounts; then
   $PYTHON $NOTE -t $TELEGRAMCFG -n "${MSG}" -l "IMBOTminute${YEAR}" -p $TELEGRAMLOG
   # ANALYSE
   export TERM=linux
-  $PYTHON $APP -s $MINSTEP1 -i $MINSTEP2 -j $MINSTEP3 -k $MOUNTMINDEF -d $DESTINATION -t $TMPDIR -m $MEMORY -n $TELEGRAMCFG -e $CFGDIR -o $OBSLIST -w $WINE -p $OBSTESTLIST
+  $PYTHON $APP -s $MINSTEP1 -i $MINSTEP2 -j $MINSTEP3 -k $MOUNTMINDEF -d $DESTINATION -t $TMPDIR -m $MEMORY -y $YEAR -n $TELEGRAMCFG -e $CFGDIR -o $OBSLIST -w $WINE -p $OBSTESTLIST
   echo "Analysis performed"
 else
   MSG="GIN directories could not be mounted (or problem with analysis)"
@@ -126,4 +126,3 @@ umount $MOUNTMINSTEP1
 umount $MOUNTMINSTEP2
 umount $MOUNTMINSTEP3
 echo "GIN unmounted - if mounting was successful"
-

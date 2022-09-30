@@ -23,8 +23,8 @@ PREREQUISITES:
    - update crontab
 
 DESCRIPTION:
-   IMBOT is performing data checks on data products submitted to INTERMAGNET. Currently supported are 
-   one minute and one second submission. Principally, IMBOT analyses contents of directories, containing 
+   IMBOT is performing data checks on data products submitted to INTERMAGNET. Currently supported are
+   one minute and one second submission. Principally, IMBOT analyses contents of directories, containing
    directory names with Observatory codes. A summary with a dictionary of file types, modification times, etc
    will be stored in a local memory file. An analysis is triggered if by comparison of two summaries, usually
    a new one with a memory of a previous run, an analysis trigger is found i.e. not yet analyzed, modified
@@ -71,7 +71,7 @@ name = "IMBOTmin"
 """
  run GetGINDirectoryInformation(sourcepath, checkrange = 2, obslist = [],excludeobs=[]) also for step2 and step3.
   use obslist of earlier step1 run
- 
+
             ** NEW Version 1.0.4**
             - It will also try to access the STEP2 and 3 directory
               If files have been moved to step2 - mail content is changed
@@ -91,7 +91,7 @@ def ConverTime2LocationDirectory(sourcepath, destinationpath, debug=False):
     """
     for root, dirs, files in os.walk(sourcepath):
         #level = root.replace(sourcepath, '').count(os.sep)
-        if not dirs and files:  #asume we reached the final directory if there are no further subdirectories but files 
+        if not dirs and files:  #asume we reached the final directory if there are no further subdirectories but files
             # new directory name is defined from first three characters of filename
             for file in files:
                 dirname =  file[:3].upper()
@@ -110,11 +110,11 @@ def ConverTime2LocationDirectory(sourcepath, destinationpath, debug=False):
                         copyfile(src, dst)
                     else:
                         print ("ConverTime2LocationDirectory DEBUG: would copy {} to {}".format(src,dst))
-                
+
 
 
 ### ####################################
-### Minute specific methods 
+### Minute specific methods
 ### ####################################
 
 
@@ -235,13 +235,13 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
 
     issuelist = []
     logdict['Level'] = 1
-    
+
     checkingdict = {'blvcheck':{'perfom':True}}
 
     print (" Running basic MagPy read and folder content test ...")
 
-    def most_frequent(List): 
-            return max(set(List), key = List.count) 
+    def most_frequent(List):
+            return max(set(List), key = List.count)
 
     # get the pathname
     def pathname(minutesource, obscode, typ='data'):
@@ -357,22 +357,22 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
 
     #============== Checking W01..W16 headers in IAF files ================
     """
-    W01 Station code              " CLF"  (20 43 4C 46) 
-    W02 Year and day number      2020001  (A1 D2 1E 00) 
-    W03 Co-latitude (deg x 1000)   41975  (F7 A3 00 00) 
-    W04 Longitude (deg x 1000)      2260  (D4 08 00 00) 
-    W05 Elevation (metres)           145  (91 00 00 00) 
-    W06 Reported elements         "XYZG"  (58 59 5A 47) 
-    W07 Institute code            "IPGP"  (49 50 47 50) 
-    W08 D-conversion factor        10000  (10 27 00 00) 
-    W09 Data quality code         "IMAG"  (49 4D 41 47) 
-    W10 Instrument code           "  RC"  (20 20 52 43) 
-    W11 Limit for K9                 450  (C2 01 00 00) 
-    W12 Sample period (ms)           200  (C8 00 00 00) 
-    W13 Sensor orientation        "HDZF"  (48 44 5A 46) 
+    W01 Station code              " CLF"  (20 43 4C 46)
+    W02 Year and day number      2020001  (A1 D2 1E 00)
+    W03 Co-latitude (deg x 1000)   41975  (F7 A3 00 00)
+    W04 Longitude (deg x 1000)      2260  (D4 08 00 00)
+    W05 Elevation (metres)           145  (91 00 00 00)
+    W06 Reported elements         "XYZG"  (58 59 5A 47)
+    W07 Institute code            "IPGP"  (49 50 47 50)
+    W08 D-conversion factor        10000  (10 27 00 00)
+    W09 Data quality code         "IMAG"  (49 4D 41 47)
+    W10 Instrument code           "  RC"  (20 20 52 43)
+    W11 Limit for K9                 450  (C2 01 00 00)
+    W12 Sample period (ms)           200  (C8 00 00 00)
+    W13 Sensor orientation        "HDZF"  (48 44 5A 46)
     W14 Publication date          "2102"  (32 31 30 32) Date of acceptation as Definitive - will be set by INTERMAGNET
-    W15 Format version           ver 2.1  (03 00 00 00) 
-    W16 Reserved word                  0  (00 00 00 00) 
+    W15 Format version           ver 2.1  (03 00 00 00)
+    W16 Reserved word                  0  (00 00 00 00)
     """
     if debug:
         print (data.header)
@@ -385,7 +385,7 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
         print (data.header.get('StationK9'))
         print (data.header.get('DataPublicationDate'))
         print (data.header.get('DataSensorOrientation'))
-        print (data.header.get('DataFormat'))    
+        print (data.header.get('DataFormat'))
 
     # ================ YEARMEAN file versus IAF files ======================
 
@@ -450,7 +450,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 readdict = {}
                 updatedictionary = {} #GetMetaUpdates()
                 para = pathsdict.get(obscode)
-                
+
                 dailystreamlist = []
                 loggingdict = {}
                 loggingdict['Issues'] = []
@@ -483,9 +483,9 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 print (" Running MagPy test ...")
                 data, loggingdict = MagPy_check1min(sourcepath,para.get('obscode'),logdict=loggingdict, updateinfo=updatedictionary, debug=debug)
                 readdict['Year'] = loggingdict.get('year',year)
-                
+
                 destinationpath = os.path.join(destination,str(readdict.get('Year')),para.get('obscode'))
-                readdict['Destinationpath'] = destinationpath          
+                readdict['Destinationpath'] = destinationpath
 
                 # - perform check1min (dos) analysis  -> report will be attached to the mail
                 # -----------
@@ -521,7 +521,10 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 # -----------
                 level = loggingdict.get('Level')
                 print (" - Asigning data checker")
-                nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),os.path.join(pathemails,"refereelist_minute.cfg"))
+                pathrefereelist = check_path_year(os.path.join(pathemails,"refereelist_minute.cfg"),readdict.get("Year"))
+                if debug:
+                    print ("Loading referees from {}".format(pathrefereelist))
+                nameofdatachecker, referee = GetDataChecker(para.get('obscode').upper(),pathrefereelist)
                 print ("   -> found {}: {}".format(nameofdatachecker,referee))
                 print (" - Creating Mail")
                 stationname = ''  # contained in readme - extract
@@ -529,7 +532,10 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                 if debug:
                     print (mailtext)
 
-                email, managermail = ObtainEmailReceivers(loggingdict, para.get('obscode'), os.path.join(pathemails,"mailinglist_minute.cfg"), referee, debug=debug)
+                pathmailinglist = check_path_year(os.path.join(pathemails,"mailinglist_minute.cfg"),readdict.get("Year"))
+                if debug:
+                    print ("Loading alternative mailing addresses from {}".format(pathmailinglist))
+                email, managermail = ObtainEmailReceivers(loggingdict, para.get('obscode'), pathmailinglist, referee, debug=debug)
 
                 print ("   -> sending to {}".format(email))
 
@@ -547,7 +553,7 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                         maildict['Attach'] = ",".join(attachfilelist)
                     maildict['Text'] = mailtext
                     maildict['Subject'] = '{}IMBOT one-minute analysis for {} {}'.format(updatestr,para.get('obscode'),readdict.get("Year"))
-                    #### take FROM from mail.cfg 
+                    #### take FROM from mail.cfg
                     if debug:
                         print ("  Joined Mails", email)
                         print ("  -> currently only used for selected. Other mails only send to leon")
@@ -568,13 +574,13 @@ def CheckOneMinute(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
                     print ("       receivers are: {}".format(maildict['To']))
                     #### Stop here with debug mode for basic tests without memory and mails
                     sm(maildict)
-                    print (" -> DONE: mail and report send") 
+                    print (" -> DONE: mail and report send")
                 else:
                     print ("  Could not find mailconfiguration - skipping mail transfer")
                     #logdict['Not yet informed'].append(para.get('obscode'))
                     pass
 
-                # Saving Logs and 
+                # Saving Logs and
                 # Create a destination path to save reports and mails
                 if not debug:
                     if not os.path.exists(destinationpath):
@@ -636,7 +642,7 @@ def main(argv):
     step3source=''
     step2source=''
     pathemails = ''
-    year = 2020
+    year = 1971
     tele = '/etc/martas/telegram.cfg'
     logpath = '/var/log/magpy'
     mailcfg = '/etc/martas'
@@ -725,9 +731,6 @@ def main(argv):
             quietdaylist = arg.split(',')
         elif opt in ("-o", "--observatories"):
             obslist = arg.replace(" ","").split(',')
-            if 'REFEREE' in obslist:
-                obslist = GetObsListFromChecker(obslist, os.path.join(pathemails,"refereelist_minute.cfg"))
-            print (" OBSLIST provided: dealing only with {}".format(obslist))
         elif opt in ("-x", "--exclude"):
             excludeobs = arg.replace(" ","").split(',')
         elif opt in ("-n", "--notify"):
@@ -750,10 +753,16 @@ def main(argv):
 
     begin = datetime.utcnow()
 
+
+    if 'REFEREE' in obslist:
+        pathreferee = check_path_year(os.path.join(pathemails,"refereelist_minute.cfg"),year)
+        obslist = GetObsListFromChecker(obslist, pathreferee)
+        print (" OBSLIST provided: dealing only with {}".format(obslist))
+
     if debug and source == '':
         print ("Basic code test - done")
         sys.exit(0)
-    
+
     if not os.path.exists(os.path.join(logpath,analysistype)):
         os.makedirs(os.path.join(logpath,analysistype))
 
@@ -841,7 +850,7 @@ def main(argv):
         print (memdict)
         print (st1new)
         newdict, notification = GetNewInputs(memdict, st1new, simple=False, notification=noti)
-        print (" -> removed all obscodes which have been moved/copied to step3") 
+        print (" -> removed all obscodes which have been moved/copied to step3")
         print ("    result: {}".format(notification))
     #except:
     #    print ("Failure in step 1.2")
