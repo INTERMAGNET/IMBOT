@@ -391,6 +391,7 @@ def check_path_year(path,year):
     blist = basename.split(".")
     blist.insert(-1,year)
     blist.insert(-1,".")
+    blist = [str(el) for el in blist]
     newpath = os.path.join(dirname,"".join(blist))
     if os.path.isfile(newpath):
         return newpath
