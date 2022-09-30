@@ -11,7 +11,7 @@
 #
 # PARAMETER and PREREQUISITES
 # ---------------------------
-# A basic prerequisite is python3 and the magpy package (>=0.9.7). Further recommended packages are 
+# A basic prerequisite is python3 and the magpy package (>=0.9.7). Further recommended packages are
 # telegram_send (for notifications), ...
 # You need to specify the following parameters
 #  TMPDIR:      a local folder with at least 4 GB memory
@@ -20,26 +20,26 @@
 #               A large disk space is required here, suggested is > 1TB.
 #  MEMORY:      a full path to a local file, which contains the memory of all performed analyses. Please make sure,
 #              that this file is secure and accessible. Dont use a temporary folder.
-# 
+#
 #  Please make sure that all directories are existing and that the projected user has access
 #  Add something like the following to systemwide /etc/crontab:
-#  15 0   *  *  *  root bash /home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/analyzesecond2018.sh > /home/user/last_sec_analysis2018.log 
-#  15 12  *  *  *  root bash /home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/analyzesecond2018.sh > /home/user/last_sec_analysis2018.log 
-#  15 4   *  *  *  root bash /home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/analyzesecond2019.sh > /home/user/last_sec_analysis2019.log 
-#  15 16  *  *  *  root bash /home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/analyzesecond2019.sh > /home/user/last_sec_analysis2019.log 
+#  15 0   *  *  *  root bash /home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/analyzesecond2018.sh > /home/user/last_sec_analysis2018.log
+#  15 12  *  *  *  root bash /home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/analyzesecond2018.sh > /home/user/last_sec_analysis2018.log
+#  15 4   *  *  *  root bash /home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/analyzesecond2019.sh > /home/user/last_sec_analysis2019.log
+#  15 16  *  *  *  root bash /home/leon/Cloud/Software/MagPyAnalysis/OneSecondAnalysis/analyzesecond2019.sh > /home/user/last_sec_analysis2019.log
 #
-# 
+#
 # APPLICATION
 # -----------
-# Use a separate analysis script for each year. The analysis script should be scheduled to be run at least 
+# Use a separate analysis script for each year. The analysis script should be scheduled to be run at least
 # once every day. The analysis of a single new one-second submission might need approximately one hour.
-# Therefore, an execution of this script more often than every three hours is not advisable, if institutes upload 
-# several data sets of multiple observatories at once. 
+# Therefore, an execution of this script more often than every three hours is not advisable, if institutes upload
+# several data sets of multiple observatories at once.
 #
 # MONITORING
 # -----------
 # The script makes use of a small python application which allows for sending telegram notifications based on
-# MARTAS () logging method, i.e. whenever a state is changing. You can also pipe the output of the script into a log 
+# MARTAS () logging method, i.e. whenever a state is changing. You can also pipe the output of the script into a log
 # file and use other monitoring methods like Nagios etc for checking the run time state of the bash script.
 #
 # ginsource.sh:
@@ -87,7 +87,7 @@ if grep -qs "$MOUNTSEC" /proc/mounts && grep -qs "$MOUNTMIN" /proc/mounts; then
   # Please uncomment using # if you are not using Telegram notifications
   $PYTHON $NOTE -t /etc/martas/telegram.cfg -n "${MSG}" -l "IMBOTmaster"
   # ANALYSE
-  $PYTHON $APP -s $SOURCEDIR -d $DESTINATION -t $TMPDIR -i $MINDIR -m $MEMORY -n /etc/martas/telegram.cfg -q $QUIETDAYLIST -p $OBSTESTLIST
+  $PYTHON $APP -s $SOURCEDIR -d $DESTINATION -t $TMPDIR -i $MINDIR -y $YEAR -m $MEMORY -n /etc/martas/telegram.cfg -q $QUIETDAYLIST -p $OBSTESTLIST
   echo "Analysis performed"
   # UMOUNT DIRECTORIES
   umount $MOUNTMIN
@@ -133,6 +133,3 @@ else
   # Please uncomment using # if you are not using Telegram notifications
   $PYTHON $NOTE -t /etc/martas/telegram.cfg -n "${MSG}" -l "IMBOTupload"
 fi
-
-
-
