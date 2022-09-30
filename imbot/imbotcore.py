@@ -16,6 +16,7 @@ from shutil import copyfile
 import filecmp
 from dateutil.relativedelta import relativedelta
 import gc
+import time
 
 partialcheck_v1 = {
 		'IMOS-01' : 'Time-stamp accuracy (centred on the UTC second): 0.01s',
@@ -592,16 +593,39 @@ def CopyTemporary(pathsdict, tmpdir="/tmp", logdict={}):
                         tar.extractall(newdir)
                     condict[fname] = "tar extracted"
                 else:
+                    #print (" -> copying individual files...")
                     if not os.path.isdir(src):
                         # eventually use a filter method here like "if not fname in []"
-                        try:
-                            if not os.path.exists(dst) or not filecmp.cmp(src, dst):
+                        #try:
+                        ok = True
+                        if ok:
+                            #print (" -> source is not directory - OK ...")
+                            if not os.path.exists(dst):
+                                print ("   -> copying new file ...")
+                                try:
+                                    copyfile(src, dst)
+                                except:
+                                    # for some unkown reason Jan.bin files sometimes cannot be cópied
+                                    # not reproducible... i have no idea why ... workaround below
+                                    print (" -> failed ... retrying")
+                                    for i in range(10):
+                                        time.sleep(5)
+                                        try:
+                                            copyfile(src, dst)
+                                        except:
+                                            print ("Retry {} of {} failed".format(i+1,10))
+                                condict[fname] = "file copied"
+                            elif not filecmp.cmp(src, dst):
+                                print ("   -> replacing existing temporary file ...")
                                 copyfile(src, dst)
                                 condict[fname] = "file copied"
                             else:
+                                print ("   -> identical file already exists ...")
                                 condict[fname] = "file already exists"
-                        except:
-                            condict[fname] = "copying file failed"
+                            print (" -> Done ...")
+                        #except:
+                        #    print (" -> Failed ...")
+                        #    condict[fname] = "copying file failed"
 
 
             logdict[obscode] = condict

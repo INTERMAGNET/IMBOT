@@ -216,7 +216,9 @@ def DOS_check1min(sourcepath, obscode, year=2020, winepath='/root/.wine',logdict
 
 
     attach = logdict.get('Attachment',[])
-    attach.append(os.path.join(sourcepath,"{}report{}.txt".format(obscode.lower(),year)))
+    attachfile = os.path.join(sourcepath,"{}report{}.txt".format(obscode.lower(),year))
+    if os.path.isfile(attachfile):
+        attach.append(attachfile)
     logdict['Attachment'] = attach
     checklist = logdict.get('CheckList',[])
     checklist.append('check1min (dos) performed')
@@ -308,24 +310,24 @@ def MagPy_check1min(sourcepath, obscode, logdict={}, updateinfo={}, optionalhead
             issuelist.append("please check the amount of binary files - only one year")
         else:
             issuelist.append("check binary files")
-            print ("   check presence of all requested binary files")
+            print ("   ISSUE: check presence of all requested binary files")
             logdict['Level'] = 0
         if blvcnt >= 1:
             print ("   Requested files are present")
         else:
             issuelist.append("check presence of baseline data")
-            print ("   check baseline data")
+            print ("   ISSUE: check baseline data")
             logdict['Level'] = 0
         if addcnt >= 2:
             print ("   Yearmean and readme seem to be present")
         else:
             issuelist.append("check yearmean/readme")
-            print ("   check presence of yearmean /readme")
+            print ("   ISSUE: check presence of yearmean /readme")
             logdict['Level'] = 0
     except:
         issue = "problem when accessing data files"
         issuelist.append(issue)
-        print ("   {}".format(issue))
+        print ("   ISSUE: {}".format(issue))
         logdict['Level'] = 0
 
     #==============  Readability of files
