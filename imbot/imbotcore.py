@@ -382,10 +382,10 @@ def ObtainEmailReceivers(logdict, obscode, mailinglist, referee, localmailinglis
         return email, managermail
 
 def check_path_year(path,year):
-	"""
+    """
     if pathname xxx.cfg exists with year (i.e. xxx2020.cfg)
     then return the name with year
-	"""
+    """
     dirname = os.path.dirname(path)
     basename = os.path.basename(path)
     blist = basename.split(".")

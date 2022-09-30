@@ -7,6 +7,9 @@
 1.0.5 additions:
     + added the possibility to use yearly different mailing lists for referees and receivers
 
+1.0.5 fixes:
+    + correct adoption of version number
+
 ####<1.0.4>, <2022-01-11> --
 
 1.0.4 general:

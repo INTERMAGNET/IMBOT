@@ -62,7 +62,7 @@ from dateutil.relativedelta import relativedelta
 import gc
 
 from imbotcore import *
-
+from version import __version__ as imbotversion
 
 # Basic MARTAS Telegram logging configuration for IMBOT manager
 logpath = '/var/log/magpy/imbot.log'
@@ -1547,7 +1547,7 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
 
 def main(argv):
-    imbotversion = '1.0.4'
+    #imbotversion = '1.0.4'
     checkrange = 3 # 3 hours
     statusmsg = {}
     obslist = []
