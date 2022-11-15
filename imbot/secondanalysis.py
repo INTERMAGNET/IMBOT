@@ -462,18 +462,30 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
                 tableline = []
                 tableline.append(key)
                 tableline.append(partialcheck.get(key))
-                if key == 'IMOS41' and (logdict.get('F') in ['None',''] or logdict.get('F').startswith('found no')):
+                if key in ['IMOS41','IMOS-41'] and (logdict.get('F') in ['None',''] or logdict.get('F').startswith('found no')):
                     tableline.append('confirmed but invalid')
-                    issuedict['StandardLevel - IMOS41'] = 'criteria not met'
-                elif key == 'IMOS42' and logdict.get('T') in ['None','']:
+                    issuedict['StandardLevel - IMOS-41'] = 'criteria not met'
+                elif key in ['IMOS42','IMOS-42'] and logdict.get('T') in ['None','']:
                     tableline.append('confirmed but invalid')
-                    issuedict['StandardLevel - IMOS42'] = 'criteria not met'
+                    issuedict['StandardLevel - IMOS-42'] = 'criteria not met'
                 else:
                     tableline.append('validity confirmed by submitter')
                 tablelist.append(tableline)
         elif head.get('DataStandardLevel','') in ['partial','Partial','PARTIAL']:
-            #print ("Partial descriptions found:", head)
+            print ("Partial descriptions found:", head)
             partialvals = head.get('DataPartialStandDesc')
+            if not isinstance(partialvals, list):
+                print ('partialvals are not provided as list - converting')
+                partialvals = partialvals.split(',')
+            # Convert IMOS41 to IMOS-41
+            nl = []
+            for el in partialvals:
+                if el.startswith('IMOS') and not el.startswith('IMOS-'):
+                    nl.append(el.replace('IMOS','IMOS-'))
+                else:
+                    nl.append(el)
+            partialvals = nl
+            print ("provided partial vals look like:",  partialvals)
             for key in partialcheck:
                 tableline = []
                 tableline.append(key)
@@ -481,10 +493,10 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
                 try:
                     if partialvals.find(key) > -1:
                         tableline.append('validity confirmed by submitter')
-                        if key == 'IMOS41' and (logdict.get('F') in ['None',''] or logdict.get('F').startswith('found no')):
+                        if key == 'IMOS-41' and (logdict.get('F') in ['None',''] or logdict.get('F').startswith('found no')):
                             tableline.append('confirmed but invalid')
                             issuedict['StandardLevel - IMOS41'] = 'criteria not met'
-                        elif key == 'IMOS42' and logdict.get('T') in ['None','']:
+                        elif key == 'IMOS-42' and logdict.get('T') in ['None','']:
                             tableline.append('confirmed but invalid')
                             issuedict['StandardLevel - IMOS42'] = 'criteria not met'
                     else:
