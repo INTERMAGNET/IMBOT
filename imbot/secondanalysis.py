@@ -298,7 +298,7 @@ def ReadMonth(sourcepath, starttime, endtime, logdict={}, updateinfo={}, optiona
             if len(newmeta) > 0:
                 print ("Observatory provided additional meta information: {}".format(newmeta))
                 for key in newmeta:
-                   print ("Appending new meta info")
+                   print ("Appending new meta info for {}".format(key))
                    data.header[key] = newmeta[key]
 
             #print ("Datalimits from {} to {}".format(st,et))
