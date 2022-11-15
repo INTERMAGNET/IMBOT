@@ -484,14 +484,16 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
                     nl.append(el.replace('IMOS','IMOS-'))
                 else:
                     nl.append(el)
-            partialvals = nl
+            partialvals = ",".join(nl)
             print ("provided partial vals look like:",  partialvals)
             for key in partialcheck:
                 tableline = []
                 tableline.append(key)
                 tableline.append(partialcheck.get(key))
                 try:
+                    print (key, partialvals)
                     if partialvals.find(key) > -1:
+                        print ("Found the key in partialvals")
                         tableline.append('validity confirmed by submitter')
                         if key == 'IMOS-41' and (logdict.get('F') in ['None',''] or logdict.get('F').startswith('found no')):
                             tableline.append('confirmed but invalid')
