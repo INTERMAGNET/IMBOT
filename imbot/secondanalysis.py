@@ -301,8 +301,9 @@ def ReadMonth(sourcepath, starttime, endtime, logdict={}, updateinfo={}, optiona
                    print ("Appending new meta info for {}".format(key))
                    HEADTRANSLATE = {'FormatDescription':'DataFormat', 'IagaCode':'StationID', 'ElementsRecorded':'DataComponents', 'ObservatoryName':'StationName', 'Latitude':'DataAcquisitionLatitude', 'Longitude':'DataAcquisitionLongitude', 'Institution':'StationInstitution', 'VectorSensOrient':'DataSensorOrientation', 'TermsOfUse':'DataTerms','UniqueIdentifier':'DataID','ParentIdentifiers':'SensorID','ReferenceLinks':'StationWebInfo', 'FlagRulesetType':'FlagRulesetType','FlagRulesetVersion':'FlagRulesetVersion'} # taken from format_imagcdf
                    for cdfhead in HEADTRANSLATE:
-                       if cdfhead.find(key) > -1:
+                       if cdfhead.find(key) > -1 or HEADTRANSLATE[cdfhead].find(key) > -1:
                            key = HEADTRANSLATE[cdfhead]
+                   print (" {}".format(key))
                    data.header[key] = newmeta[key]
 
             #print ("Datalimits from {} to {}".format(st,et))
