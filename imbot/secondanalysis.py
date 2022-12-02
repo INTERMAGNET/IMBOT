@@ -1561,7 +1561,7 @@ def CheckOneSecond(pathsdict, tmpdir="/tmp", destination="/tmp", logdict={}, sel
 
 
 def main(argv):
-    #imbotversion = '1.0.4'
+    #imbotversion = '1.0.6'
     checkrange = 3 # 3 hours
     statusmsg = {}
     obslist = []
@@ -1584,9 +1584,9 @@ def main(argv):
     minstep1dir,minstep2dir,minstep3dir = '','',''
 
     try:
-        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:j:k:e:l:c:p:y:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutestep1=","minutestep2=","minutestep3=","emails=","logpath=","mailcfg=","testobslist=","debug=",])
+        opts, args = getopt.getopt(argv,"hs:d:t:q:m:r:n:o:i:j:k:e:l:c:p:y:w:D",["source=", "destination=", "temporary=", "quietdaylist=","memory=","report=","notify=","observatories=","minutestep1=","minutestep2=","minutestep3=","emails=","logpath=","mailcfg=","testobslist=","year=","waitingtime=","debug=",])
     except getopt.GetoptError:
-        print ('secondanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutestep1> -j <minutestep2> -k <minutestep3> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist> -y <year>')
+        print ('secondanalysis.py -s <source> -d <destination> -t <temporary> -q quietdaylist -n <notify> -o <observatories> -i <minutestep1> -j <minutestep2> -k <minutestep3> -e <emails> -l <logpath> -c <mailcfg> -p <testobslist> -y <year> -w <waitingtime>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -1620,6 +1620,7 @@ def main(argv):
             print ('-c            : path for mail configuration file "mail.cfg" - default is /etc/martas')
             print ('-l            : path for logs and logging info, default is /var/log/magpy')
             print ('-y            : year')
+            print ('-w            : waiting time - default is 3 hours')
             print ('-------------------------------------')
             print ('Example of memory:')
             print ('-------------------------------------')
@@ -1666,6 +1667,11 @@ def main(argv):
                 testobslist = arg.split(',')
         elif opt in ("-y", "--year"):
             year = int(arg)
+        elif opt in ("-w", "--waitingtime"):
+            try:
+                checkrange = int(arg)
+            except:
+                pass
         elif opt in ("-D", "--debug"):
             debug = True
 
