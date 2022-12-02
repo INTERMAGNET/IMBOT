@@ -299,6 +299,11 @@ def ReadMonth(sourcepath, starttime, endtime, logdict={}, updateinfo={}, optiona
                 print ("Observatory provided additional meta information: {}".format(newmeta))
                 for key in newmeta:
                    print ("Appending new meta info for {}".format(key))
+                   shortnames = ['
+                   HEADTRANSLATE = {'FormatDescription':'DataFormat', 'IagaCode':'StationID', 'ElementsRecorded':'DataComponents', 'ObservatoryName':'StationName', 'Latitude':'DataAcquisitionLatitude', 'Longitude':'DataAcquisitionLongitude', 'Institution':'StationInstitution', 'VectorSensOrient':'DataSensorOrientation', 'TermsOfUse':'DataTerms','UniqueIdentifier':'DataID','ParentIdentifiers':'SensorID','ReferenceLinks':'StationWebInfo', 'FlagRulesetType':'FlagRulesetType','FlagRulesetVersion':'FlagRulesetVersion'} # taken from format_imagcdf
+                   for cdfhead in HEADTRANSLATE:
+                       if cdfhead.find(key) > -1:
+                           key = HEADTRANSLATE[cdfhead]
                    data.header[key] = newmeta[key]
 
             #print ("Datalimits from {} to {}".format(st,et))
@@ -472,9 +477,13 @@ def CheckStandardLevel(data, logdict={}, partialcheck=partialcheck_v1):
                     tableline.append('validity confirmed by submitter')
                 tablelist.append(tableline)
         elif head.get('DataStandardLevel','') in ['partial','Partial','PARTIAL']:
-            print ("Partial descriptions found:", head)
-            partialvals = head.get('DataPartialStandDesc')
-            if not isinstance(partialvals, list):
+            pkeyl = [key for key in head if key.find('PartialStandDesc') > -1]
+            if len(pkeyl) > 0:
+                partialvals = head.get(pkeyl[0])
+            else:
+                partialvals = []
+            print ("Partial descriptions necessary. They look like:", partialvals)
+            if partialvals and not isinstance(partialvals, list):
                 print ('partialvals are not provided as list - converting')
                 partialvals = partialvals.split(',')
             # Convert IMOS41 to IMOS-41
